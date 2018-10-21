@@ -36,7 +36,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".mvp.ui.activity.LotteryActivity"></activity>
+        <activity android:name=".mvp.ui.activity.LotteryActivity" />
+        <activity android:name=".mvp.ui.activity.ShareActivity"></activity>
     </application>
 
 </manifest>
