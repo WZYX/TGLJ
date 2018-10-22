@@ -38,4 +38,5 @@ dependencies {
     annotationProcessor rootProject.ext.dependencies["butterknife-compiler"] //Butterknife 插件,很多人因为没加这个而报错,切记!!!
     annotationProcessor rootProject.ext.dependencies["dagger2-compiler"]//依赖插件, annotationProcessor 是 AndroidStudio 自带并用来替换 APT
     implementation 'me.jessyan:arms:2.4.1'
+    compile 'org.jsoup:jsoup:1.10.2'
 }
