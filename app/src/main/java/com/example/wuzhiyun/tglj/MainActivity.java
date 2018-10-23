@@ -1,9 +1,16 @@
 package com.example.wuzhiyun.tglj;
 
+import android.support.annotation.NonNull;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+
+import com.example.wuzhiyun.tglj.mvp.ui.adpter.FragmentAdapter;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -11,13 +18,38 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
+
+    @BindView(R.id.viewPager)
+    ViewPager viewPager;
+    @BindView(R.id.tabLayout)
+    TabLayout tabLayout;
+
+    private FragmentAdapter adapter;
+    private List<String> title;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
+        List<String> data = new ArrayList<>();
+        data.add("399006");
+        data.add("399001");
+        title = new ArrayList<>();
+        title.add("创业板指");
+        title.add("深圳成指");
+        adapter = new FragmentAdapter(getSupportFragmentManager(), data, title);
+        viewPager.setAdapter(adapter);
+        tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
+        tabLayout.setTabsFromPagerAdapter(adapter);
+        tabLayout.setupWithViewPager(viewPager);
         new Thread() {
             @Override
             public void run() {
