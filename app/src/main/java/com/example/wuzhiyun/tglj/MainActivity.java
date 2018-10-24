@@ -80,12 +80,12 @@ public class MainActivity extends AppCompatActivity {
                 Document doc = null;
                 int year = 2018;
                 int jidu = 4;
-                String date = "10-22";
+                String date = "10-25";
                 String lundar = "";
                 try {
-                    lundar = CalendarUtil.solarToLunar("20181022");
+                    lundar = CalendarUtil.solarToLunar("20181025");
                     if (!TextUtils.isEmpty(lundar)) {
-                        lundar = lundar.substring(8);
+                        lundar = lundar.substring(4);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
