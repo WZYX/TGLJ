@@ -22,6 +22,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import io.realm.Realm;
@@ -40,6 +41,7 @@ public class ShareFragment extends Fragment {
         if (mView == null) {
             mView = inflater.inflate(R.layout.fragment_share, null);
             code = getArguments().getString("CODE");
+            arrayData = new SparseArray<>();
             getData();
         }
         ((TextView) mView.findViewById(R.id.name)).setText("聊天界面");
@@ -68,21 +70,26 @@ public class ShareFragment extends Fragment {
                 if (realmRealmResults != null && realmRealmResults.size() > 0) {
                     date = realmRealmResults.get(0).getDate();
                 }
-                String lundar = "";
-                try {
-                    lundar = CalendarUtil.solarToLunar("20181024");
-                    if (!TextUtils.isEmpty(lundar)) {
-                        lundar = lundar.substring(5);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                calendar.add(Calendar.DATE, -1);// 日期减1
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                String yestoday = sdf.format(calendar.getTime());
+                //已取到昨天数据。今天还未收盘
+                if (!TextUtils.isEmpty(date) && date.equals(yestoday) && calendar.get(Calendar.HOUR_OF_DAY) < 15) {
+                    return;
                 }
+                boolean isOver = false;
                 for (int k = 0; k < 13; k++, year--) {
+                    if(isOver) {
+                        break;
+                    }
                     int j = 4;
                     if (year == calendar.get(Calendar.YEAR)) {
                         j = jidu;
                     }
                     for (; j > 0; j--) {
+                        if (isOver) {
+                            break;
+                        }
                         try {
                             String url = "http://money.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/" + code + ".phtml?year=" + year + "&jidu=" + j;
                             doc = Jsoup.connect(url).get();
@@ -97,7 +104,8 @@ public class ShareFragment extends Fragment {
                         for (int i = 2; i < trs.size(); i++) {
                             Elements tds = trs.get(i).select("td");
                             if (tds.get(0).text().equals(date)) {
-                                return;
+                                isOver = true;
+                                break;
                             }
                             try {
                                 final ShareRealm shareK = new ShareRealm();
