@@ -24,7 +24,7 @@ public class FragmentAdapter extends FragmentStatePagerAdapter {
     public Fragment getItem(int position) {
         ShareFragment mFragmentMoment = new ShareFragment();
         Bundle bundle_fragment = new Bundle();
-        bundle_fragment.putSerializable("CODE", data.get(position));
+        bundle_fragment.putString("CODE", data.get(position));
         mFragmentMoment.setArguments(bundle_fragment);
         return mFragmentMoment;
     }
