@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.example.wuzhiyun.tglj.CalendarUtil;
 import com.example.wuzhiyun.tglj.R;
 import com.example.wuzhiyun.tglj.TGLJApplication;
+import com.example.wuzhiyun.tglj.db.ShareCodeName;
 import com.example.wuzhiyun.tglj.db.ShareRealm;
 
 import org.jsoup.Jsoup;
@@ -79,7 +80,7 @@ public class ShareFragment extends Fragment {
                 }
                 boolean isOver = false;
                 for (int k = 0; k < 13; k++, year--) {
-                    if(isOver) {
+                    if (isOver) {
                         break;
                     }
                     int j = 4;
@@ -101,6 +102,21 @@ public class ShareFragment extends Fragment {
                             continue;
                         }
                         Elements trs = table.select("tr");
+                        ShareCodeName shareCodeName = realm.where(ShareCodeName.class).equalTo("code", code).findFirst();
+                        String text = trs.get(0).select("th").get(0).text();
+                        String shareName = text.substring(0, text.indexOf("("));
+                        if (shareCodeName == null || !shareName.equals(shareCodeName.getName())) {
+                            realm.executeTransaction(new Realm.Transaction() {
+                                @Override
+                                public void execute(Realm realm) {
+                                    ShareCodeName shareCodeName1 = new ShareCodeName();
+                                    shareCodeName1.setCode(code);
+                                    shareCodeName1.setName(shareName);
+                                    realm.copyToRealmOrUpdate(shareCodeName1);
+
+                                }
+                            });
+                        }
                         for (int i = 2; i < trs.size(); i++) {
                             Elements tds = trs.get(i).select("td");
                             if (tds.get(0).text().equals(date)) {
@@ -121,7 +137,7 @@ public class ShareFragment extends Fragment {
                                 String dateTemp = shareK.getDate().replace("-", "");
                                 String dateLunar = CalendarUtil.solarToLunar(dateTemp);
                                 shareK.setLeap(dateLunar.contains("闰"));
-                                shareK.setLunar(dateLunar.replace("闰",""));
+                                shareK.setLunar(dateLunar.replace("闰", ""));
                                 arrayData.append(Integer.valueOf(dateTemp), shareK);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -133,12 +149,13 @@ public class ShareFragment extends Fragment {
                 realm.executeTransaction(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        for (int i = 0; i < arrayData.size(); i++){
+                        for (int i = 0; i < arrayData.size(); i++) {
                             realm.copyToRealmOrUpdate(arrayData.valueAt(i));
                         }
 
                     }
                 });
+                realm.close();
             }
         }.start();
     }

@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
+import com.example.wuzhiyun.tglj.db.ShareCodeName;
 import com.example.wuzhiyun.tglj.mvp.ui.adpter.FragmentAdapter;
 import com.jess.arms.utils.ArmsUtils;
 
@@ -24,6 +25,9 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.Realm;
+import io.realm.RealmResults;
+import io.realm.Sort;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,12 +45,29 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         ArmsUtils.obtainAppComponentFromContext(this).appManager();
-        List<String> data = new ArrayList<>();
-        data.add("399006");
-        data.add("399001");
+
         title = new ArrayList<>();
-        title.add("创业板指");
-        title.add("深圳成指");
+        Realm realm = TGLJApplication.getInstance().getRealm();
+        RealmResults<ShareCodeName> realmResults = realm.where(ShareCodeName.class).findAllSorted("code", Sort.ASCENDING);
+        List<String> data = new ArrayList<>();
+        if (realmResults.size() == 0) {
+            data.add("399006");
+            data.add("399001");
+            title.add("创业板指");
+            title.add("深圳成指");
+        } else {
+            for (int i = 0; i < realmResults.size(); i++) {
+                ShareCodeName shareCodeName = realmResults.get(i);
+                if (shareCodeName.getCode().equals("399006") || shareCodeName.getCode().equals("399001")) {
+                    data.add(0, realmResults.get(i).getCode());
+                    title.add(0, realmResults.get(i).getName());
+                } else {
+                    data.add(realmResults.get(i).getCode());
+                    title.add(realmResults.get(i).getName());
+                }
+
+            }
+        }
         adapter = new FragmentAdapter(getSupportFragmentManager(), data, title);
         viewPager.setAdapter(adapter);
         tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
