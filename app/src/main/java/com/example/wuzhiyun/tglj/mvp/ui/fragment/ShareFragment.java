@@ -32,7 +32,7 @@ public class ShareFragment extends Fragment {
     View mView;
     private String name;//股票名称
     private String code;//股票代码
-    private SparseArray arrayData;//k线数据
+    private SparseArray<ShareRealm> arrayData;//k线数据
 
     @Nullable
     @Override
@@ -115,12 +115,6 @@ public class ShareFragment extends Fragment {
                                 shareK.setLeap(dateLunar.contains("闰"));
                                 shareK.setLunar(dateLunar.replace("闰",""));
                                 arrayData.append(Integer.valueOf(dateTemp), shareK);
-                                realm.executeTransaction(new Realm.Transaction() {
-                                    @Override
-                                    public void execute(Realm realm) {
-                                        realm.copyToRealmOrUpdate(shareK);
-                                    }
-                                });
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -128,6 +122,15 @@ public class ShareFragment extends Fragment {
                     }
 
                 }
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        for (int i = 0; i < arrayData.size(); i++){
+                            realm.copyToRealmOrUpdate(arrayData.valueAt(i));
+                        }
+
+                    }
+                });
             }
         }.start();
     }
