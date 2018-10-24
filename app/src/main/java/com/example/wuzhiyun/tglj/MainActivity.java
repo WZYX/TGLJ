@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.example.wuzhiyun.tglj.mvp.ui.adpter.FragmentAdapter;
+import com.jess.arms.utils.ArmsUtils;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        ArmsUtils.obtainAppComponentFromContext(this).appManager();
         List<String> data = new ArrayList<>();
         data.add("399006");
         data.add("399001");
@@ -211,6 +213,6 @@ public class MainActivity extends AppCompatActivity {
 //                        Log.e("一、dataArray[2]", dataArray[dataArray.length -2]);
 //                        Log.e("一、dataArray[1]", dataArray[dataArray.length -1]);
             }
-        }.start();
+        };
     }
 }

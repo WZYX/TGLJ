@@ -22,7 +22,7 @@
         android:value="ConfigModule" />
 
     <application
-        android:name="com.jess.arms.base.BaseApplication"
+        android:name="TGLJApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

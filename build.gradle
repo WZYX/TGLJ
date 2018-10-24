@@ -10,6 +10,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:3.2.1'
         //lambda
         classpath 'me.tatarka:gradle-retrolambda:3.6.0'
+        classpath "io.realm:realm-gradle-plugin:2.2.1"
     }
 }
 
