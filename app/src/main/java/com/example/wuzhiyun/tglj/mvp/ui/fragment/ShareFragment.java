@@ -111,7 +111,9 @@ public class ShareFragment extends Fragment {
                                 shareK.setVolume(Long.valueOf(tds.get(5).text()));
                                 shareK.setTurnover(Long.valueOf(tds.get(6).text()));
                                 String dateTemp = shareK.getDate().replace("-", "");
-                                shareK.setLunar(CalendarUtil.solarToLunar(dateTemp));
+                                String dateLunar = CalendarUtil.solarToLunar(dateTemp);
+                                shareK.setLeap(dateLunar.contains("闰"));
+                                shareK.setLunar(dateLunar.replace("闰",""));
                                 arrayData.append(Integer.valueOf(dateTemp), shareK);
                                 realm.executeTransaction(new Realm.Transaction() {
                                     @Override

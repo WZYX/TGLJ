@@ -336,7 +336,9 @@ public class CalendarUtil {
         lunarMonth = i;
         lunarDay = offset;
 
-        return lunarYear + "年" + (leapMonthFlag & (lunarMonth == leapMonth) ? "闰" : "") + lunarMonth + "月" + lunarDay + "日";
+        return lunarYear + (leapMonthFlag & (lunarMonth == leapMonth) ? "闰" : "") +
+                (lunarMonth > 9 ? lunarMonth : "0" + lunarMonth)  +
+                (lunarDay > 9 ? lunarDay : "0" + lunarDay);
     }
 
 }

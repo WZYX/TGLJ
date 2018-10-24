@@ -10,6 +10,7 @@ public class ShareRealm extends RealmObject {
     private String code;//股票代码
     private String date;
     private String lunar;//阴历日期
+    private boolean isLeap;//是否是闰月
     private double openPrice;
     private double closingPrice;
     private double maxPrice;
@@ -47,6 +48,14 @@ public class ShareRealm extends RealmObject {
 
     public void setLunar(String lunar) {
         this.lunar = lunar;
+    }
+
+    public boolean isLeap() {
+        return isLeap;
+    }
+
+    public void setLeap(boolean leap) {
+        isLeap = leap;
     }
 
     public double getOpenPrice() {
