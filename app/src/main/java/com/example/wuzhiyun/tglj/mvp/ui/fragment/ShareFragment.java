@@ -136,7 +136,7 @@ public class ShareFragment extends Fragment {
                                 shareK.setMinPrice(Double.valueOf(tds.get(4).text()));
                                 shareK.setVolume(Long.valueOf(tds.get(5).text()));
                                 shareK.setTurnover(Long.valueOf(tds.get(6).text()));
-                                String dateTemp = shareK.getDate().replace("-", "");
+                                String dateTemp = dateStr.replace("-", "");
                                 String dateLunar = CalendarUtil.solarToLunar(dateTemp);
                                 shareK.setLeap(dateLunar.contains("闰"));
                                 String lunarTemp = dateLunar.replace("闰", "");
