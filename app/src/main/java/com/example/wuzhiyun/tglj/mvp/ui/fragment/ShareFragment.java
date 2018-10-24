@@ -125,9 +125,11 @@ public class ShareFragment extends Fragment {
                             }
                             try {
                                 final ShareRealm shareK = new ShareRealm();
-                                shareK.setId(code + tds.get(0).text());
+                                String dateStr = tds.get(0).text();
+                                shareK.setId(code + dateStr);
                                 shareK.setCode(code);
-                                shareK.setDate(tds.get(0).text());
+                                shareK.setDateYear(dateStr.substring(0, 4));
+                                shareK.setDate(dateStr.substring(4).replace("-", ""));
                                 shareK.setOpenPrice(Double.valueOf(tds.get(1).text()));
                                 shareK.setMaxPrice(Double.valueOf(tds.get(2).text()));
                                 shareK.setClosingPrice(Double.valueOf(tds.get(3).text()));
@@ -137,7 +139,9 @@ public class ShareFragment extends Fragment {
                                 String dateTemp = shareK.getDate().replace("-", "");
                                 String dateLunar = CalendarUtil.solarToLunar(dateTemp);
                                 shareK.setLeap(dateLunar.contains("闰"));
-                                shareK.setLunar(dateLunar.replace("闰", ""));
+                                String lunarTemp = dateLunar.replace("闰", "");
+                                shareK.setLunarYear(lunarTemp.substring(0, 4));
+                                shareK.setLunar(lunarTemp.substring(4));
                                 arrayData.append(Integer.valueOf(dateTemp), shareK);
                             } catch (Exception e) {
                                 e.printStackTrace();

@@ -8,8 +8,10 @@ public class ShareRealm extends RealmObject {
     @PrimaryKey
     private String id;
     private String code;//股票代码
-    private String date;
-    private String lunar;//阴历日期
+    private String dateYear;//阳历年 yyyy
+    private String date;//阳历日期 MMdd
+    private String lunarYear;//阴历年 yyyy
+    private String lunar;//阴历日期 MMdd
     private boolean isLeap;//是否是闰月
     private double openPrice;
     private double closingPrice;
@@ -104,5 +106,21 @@ public class ShareRealm extends RealmObject {
 
     public void setTurnover(long turnover) {
         this.turnover = turnover;
+    }
+
+    public String getDateYear() {
+        return dateYear;
+    }
+
+    public void setDateYear(String dateYear) {
+        this.dateYear = dateYear;
+    }
+
+    public String getLunarYear() {
+        return lunarYear;
+    }
+
+    public void setLunarYear(String lunarYear) {
+        this.lunarYear = lunarYear;
     }
 }
