@@ -135,13 +135,14 @@ public class ShareFragment extends Fragment {
                             String url = "http://money.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/" + code + ".phtml?year=" + year + "&jidu=" + j;
                             doc = Jsoup.connect(url).get();
                             if(doc == null){
-                                continue;
+                                isOver = true;
+                                break;
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                         Element table = doc.getElementById("FundHoldSharesTable");
-                        Log.e("wuzhiyun", code + ":" + year + " " + jidu);
+                        Log.e("wuzhiyun", code + ":" + year + " " + j);
                         if (table == null) {
                             continue;
                         }
