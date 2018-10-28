@@ -163,30 +163,29 @@ public class ShareFragment extends Fragment {
                         }
                         for (int i = 2; i < trs.size(); i++) {
                             Elements tds = trs.get(i).select("td");
-                            if (tds.get(0).text().equals(date)) {
+                            String dateStr = tds.get(0).text().replace("-", "");
+                            if (date.equals(tds.get(0).text())) {
                                 isOver = true;
                                 break;
                             }
                             try {
                                 final ShareRealm shareK = new ShareRealm();
-                                String dateStr = tds.get(0).text();
-                                shareK.setId(code + dateStr.replace("-", ""));
+                                shareK.setId(code + dateStr);
                                 shareK.setCode(code);
                                 shareK.setDateYear(dateStr.substring(0, 4));
-                                shareK.setDate(dateStr.substring(4).replace("-", ""));
+                                shareK.setDate(dateStr.substring(4));
                                 shareK.setOpenPrice(Double.valueOf(tds.get(1).text()));
                                 shareK.setMaxPrice(Double.valueOf(tds.get(2).text()));
                                 shareK.setClosingPrice(Double.valueOf(tds.get(3).text()));
                                 shareK.setMinPrice(Double.valueOf(tds.get(4).text()));
                                 shareK.setVolume(Long.valueOf(tds.get(5).text()));
                                 shareK.setTurnover(Long.valueOf(tds.get(6).text()));
-                                String dateTemp = dateStr.replace("-", "");
-                                String dateLunar = CalendarUtil.solarToLunar(dateTemp);
+                                String dateLunar = CalendarUtil.solarToLunar(dateStr);
                                 shareK.setLeap(dateLunar.contains("闰"));
                                 String lunarTemp = dateLunar.replace("闰", "");
                                 shareK.setLunarYear(lunarTemp.substring(0, 4));
                                 shareK.setLunar(lunarTemp.substring(4));
-                                arrayData.append(Integer.valueOf(dateTemp), shareK);
+                                arrayData.append(Integer.valueOf(dateStr), shareK);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
