@@ -29,6 +29,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -190,7 +191,14 @@ public class ShareFragment extends Fragment {
                                 e.printStackTrace();
                             }
                         }
+                        //防爬虫检测
+                        try {
+                            Thread.sleep(new Random().nextInt(5) * 1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
+
 
                 }
                 realm.executeTransaction(new Realm.Transaction() {
