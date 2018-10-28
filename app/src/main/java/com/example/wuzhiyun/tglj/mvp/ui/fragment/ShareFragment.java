@@ -111,6 +111,11 @@ public class ShareFragment extends Fragment {
                 }
                 String yestoday = sdf.format(calendar.getTime());
                 calendar.add(Calendar.DATE, 2);
+                if (calendar.get(Calendar.DAY_OF_WEEK) == 7) {
+                    calendar.add(Calendar.DATE, 2);
+                } else if (calendar.get(Calendar.DAY_OF_WEEK) == 1) {
+                    calendar.add(Calendar.DATE, 1);
+                }
                 String tomorrow = sdf.format(calendar.getTime());
                 //已取到昨天数据。今天还未收盘
                 if (!TextUtils.isEmpty(date) && date.equals(yestoday) && calendar.get(Calendar.HOUR_OF_DAY) < 15) {
@@ -140,6 +145,10 @@ public class ShareFragment extends Fragment {
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
+                        }
+                        if (doc == null) {
+                            isOver = true;
+                            break;
                         }
                         Element table = doc.getElementById("FundHoldSharesTable");
                         Log.e("wuzhiyun", code + ":" + year + " " + j);
