@@ -7,20 +7,73 @@
     android:paddingBottom="10dp">
 
     <TextView
-        android:id="@+id/name"
+        android:id="@+id/solar_today_num"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        tools:text="金鸿控股"/>
+        android:layout_marginTop="10dp" />
 
     <TextView
-        android:id="@+id/code"
+        android:id="@+id/solar_today_rise"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_toEndOf="@+id/name"
-        tools:text="000669"/>
+        android:layout_below="@+id/solar_today_num"
+        android:layout_marginTop="10dp" />
 
+    <TextView
+        android:id="@+id/solar_today_fall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/solar_today_rise"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/solar_today_yang"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/solar_today_fall"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/solar_today_yin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/solar_today_yang"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/lunar_today_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/solar_today_yin"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:id="@+id/lunar_today_rise"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lunar_today_num"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/lunar_today_fall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lunar_today_rise"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/lunar_today_yang"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lunar_today_fall"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/lunar_today_yin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lunar_today_yang"
+        android:layout_marginTop="10dp" />
 
 
 </RelativeLayout>

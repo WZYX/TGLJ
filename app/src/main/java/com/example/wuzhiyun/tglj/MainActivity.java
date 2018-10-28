@@ -1,14 +1,13 @@
 package com.example.wuzhiyun.tglj;
 
-import android.support.annotation.NonNull;
+import android.os.Bundle;
 import android.support.design.widget.TabLayout;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.example.wuzhiyun.tglj.db.ShareCodeName;
 import com.example.wuzhiyun.tglj.mvp.ui.adpter.FragmentAdapter;
@@ -18,6 +17,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.simple.eventbus.EventBus;
+import org.simple.eventbus.Subscriber;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -35,21 +37,27 @@ public class MainActivity extends AppCompatActivity {
     ViewPager viewPager;
     @BindView(R.id.tabLayout)
     TabLayout tabLayout;
+    @BindView(R.id.edit)
+    EditText edit;
+    @BindView(R.id.search)
+    TextView search;
 
     private FragmentAdapter adapter;
     private List<String> title;
+    private List<String> data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        EventBus.getDefault().register(this);
         ArmsUtils.obtainAppComponentFromContext(this).appManager();
 
         title = new ArrayList<>();
         Realm realm = TGLJApplication.getInstance().getRealm();
         RealmResults<ShareCodeName> realmResults = realm.where(ShareCodeName.class).findAllSorted("code", Sort.ASCENDING);
-        List<String> data = new ArrayList<>();
+        data = new ArrayList<>();
         if (realmResults.size() == 0) {
             data.add("399006");
             data.add("399001");
@@ -58,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             for (int i = 0; i < realmResults.size(); i++) {
                 ShareCodeName shareCodeName = realmResults.get(i);
+                //创业板指数和深圳成指排前面
                 if (shareCodeName.getCode().equals("399006") || shareCodeName.getCode().equals("399001")) {
                     data.add(0, realmResults.get(i).getCode());
                     title.add(0, realmResults.get(i).getName());
@@ -235,5 +244,31 @@ public class MainActivity extends AppCompatActivity {
 //                        Log.e("一、dataArray[1]", dataArray[dataArray.length -1]);
             }
         };
+    }
+
+    @Subscriber
+    private void updateTitle(ShareCodeName shareCodeName) {
+        for (int i = 0; i < title.size(); i++) {
+            if (shareCodeName.getCode().equals(title.get(i))) {
+                title.set(i, shareCodeName.getName());
+                break;
+            }
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @OnClick(R.id.search)
+    public void onViewClicked() {
+        if (!TextUtils.isEmpty(edit.getText().toString().trim())) {
+            data.add(edit.getText().toString().trim());
+            title.add(edit.getText().toString().trim());
+            adapter.notifyDataSetChanged();
+        }
     }
 }
