@@ -166,7 +166,7 @@ public class ShareFragment extends Fragment {
                         for (int i = 2; i < trs.size(); i++) {
                             Elements tds = trs.get(i).select("td");
                             String dateStr = tds.get(0).text().replace("-", "");
-                            if (date.equals(tds.get(0).text())) {
+                            if (date.equals(dateStr)) {
                                 isOver = true;
                                 break;
                             }
