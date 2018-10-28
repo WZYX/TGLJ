@@ -4,13 +4,15 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import com.example.wuzhiyun.tglj.mvp.ui.fragment.ShareFragment;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class FragmentAdapter extends FragmentStatePagerAdapter {
+public class FragmentAdapter extends FragmentPagerAdapter {
     private List<String> data;
     private List<String> title;
 
@@ -22,11 +24,11 @@ public class FragmentAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-        ShareFragment mFragmentMoment = new ShareFragment();
-        Bundle bundle_fragment = new Bundle();
-        bundle_fragment.putString("CODE", data.get(position));
-        mFragmentMoment.setArguments(bundle_fragment);
-        return mFragmentMoment;
+            ShareFragment mFragmentMoment = new ShareFragment();
+            Bundle bundle_fragment = new Bundle();
+            bundle_fragment.putString("CODE", data.get(position));
+            mFragmentMoment.setArguments(bundle_fragment);
+            return mFragmentMoment;
     }
 
     @Override

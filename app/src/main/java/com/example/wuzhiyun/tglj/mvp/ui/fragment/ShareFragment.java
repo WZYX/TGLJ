@@ -119,8 +119,8 @@ public class ShareFragment extends Fragment {
                 String tomorrow = sdf.format(calendar.getTime());
                 //已取到昨天数据。今天还未收盘
                 if (!TextUtils.isEmpty(date) && date.equals(yestoday) && calendar.get(Calendar.HOUR_OF_DAY) < 15) {
-                    realm.close();
                     analyze(today);
+                    realm.close();
                     return;
                 }
                 boolean isOver = false;
@@ -220,13 +220,12 @@ public class ShareFragment extends Fragment {
 
                     }
                 });
-                realm.close();
                 if (calendar.get(Calendar.HOUR_OF_DAY) < 15) {
                     analyze(today);
                 } else {
                     analyze(tomorrow);
                 }
-
+                realm.close();
             }
         }.start();
     }
