@@ -10,6 +10,6 @@ package com.example.wuzhiyun.tglj.mvp.model.api;
  * ================================================
  */
 public interface Api {
-    String APP_DOMAIN = "http://money.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/";
+    String APP_DOMAIN = "https://passport.douyu.com/";
     String RequestSuccess = "0";
 }
