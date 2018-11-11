@@ -10,12 +10,14 @@ import retrofit2.http.Url;
 
 public interface DidService {
     @Headers({
-            "User-Device: MTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDE1MTF8djQuOS4x",
-            "User-Agent: android/4.9.1 (android 4.4.4; ; Nexus+5)",
-            "Cookie: acf_did=10000000000000000000000000001511",
-            "Host: passport.douyu.com",
-            "Connection: Keep-Alive",
-            "Accept-Encoding: gzip"
+            "aid:android1",
+            "channel:94",
+            "User-Device:MTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDE1MTF8djQuOS4x",
+            "User-Agent:android/4.9.1 (android 4.4.4; ; Nexus+5)",
+            "Cookie:acf_did=10000000000000000000000000001511",
+            "Host:passport.douyu.com",
+            "Connection:Keep-Alive",
+            "Accept-Encoding:gzip"
     })
     @GET
     Observable<ResponseBaseEntity<Did>> getDid(@Url String url);

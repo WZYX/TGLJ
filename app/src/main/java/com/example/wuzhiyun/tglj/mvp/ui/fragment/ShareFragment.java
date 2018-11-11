@@ -61,6 +61,14 @@ public class ShareFragment extends Fragment {
     @BindView(R.id.lunar_today_yin)
     TextView lunarTodayYinTxt;
     Unbinder unbinder;
+    @BindView(R.id.solar_high_open)
+    TextView solarHighOpenTxt;
+    @BindView(R.id.solar_low_open)
+    TextView solarLowOpenTxt;
+    @BindView(R.id.lunar_high_open)
+    TextView lunarHighOpenTxt;
+    @BindView(R.id.lunar_low_open)
+    TextView lunarLowOpenTxt;
     private String code;//股票代码
     private SparseArray<ShareRealm> arrayData;//k线数据
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -90,6 +98,7 @@ public class ShareFragment extends Fragment {
                 int year = calendar.get(Calendar.YEAR);
                 int month = calendar.get(Calendar.MONTH) + 1;
                 String today = sdf.format(calendar.getTime());
+                Log.e("wuzhiyun" + code, "今日：" + today);
                 int jidu = month / 3 + (month % 3 == 0 ? 0 : 1);
                 Realm realm = TGLJApplication.getInstance().getRealm();
                 RealmResults<ShareRealm> realmRealmResults = realm.where(ShareRealm.class)
@@ -109,14 +118,16 @@ public class ShareFragment extends Fragment {
                 } else if (calendar.get(Calendar.DAY_OF_WEEK) == 1) {
                     calendar.add(Calendar.DATE, -2);// 日期减2
                 }
-                String yestoday = sdf.format(calendar.getTime());
+                String yestoday = sdf.format(calendar.getTime());//上一个交易日
+                Log.e("wuzhiyun" + code, "下一个交易日：" + yestoday);
                 calendar.add(Calendar.DATE, 2);
                 if (calendar.get(Calendar.DAY_OF_WEEK) == 7) {
                     calendar.add(Calendar.DATE, 2);
                 } else if (calendar.get(Calendar.DAY_OF_WEEK) == 1) {
                     calendar.add(Calendar.DATE, 1);
                 }
-                String tomorrow = sdf.format(calendar.getTime());
+                String tomorrow = sdf.format(calendar.getTime());//下一个交易日
+                Log.e("wuzhiyun" + code, "下一个交易日：" + tomorrow);
                 //已取到昨天数据。今天还未收盘
                 if (!TextUtils.isEmpty(date) && date.equals(yestoday) && calendar.get(Calendar.HOUR_OF_DAY) < 15) {
                     analyze(today);
@@ -139,7 +150,7 @@ public class ShareFragment extends Fragment {
                         try {
                             String url = "http://money.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/" + code + ".phtml?year=" + year + "&jidu=" + j;
                             doc = Jsoup.connect(url).get();
-                            if(doc == null){
+                            if (doc == null) {
                                 isOver = true;
                                 break;
                             }
@@ -151,7 +162,7 @@ public class ShareFragment extends Fragment {
                             break;
                         }
                         Element table = doc.getElementById("FundHoldSharesTable");
-                        Log.e("wuzhiyun", code + ":" + year + " " + j);
+                        Log.e("wuzhiyun" + code, code + ":" + year + " " + j);
                         if (table == null) {
                             continue;
                         }
@@ -231,18 +242,25 @@ public class ShareFragment extends Fragment {
     }
 
     private void analyze(String day) {
+        Log.e("wuzhiyun" + code, "统计日期：" + day);
         int todayKey = Integer.valueOf(day);//yyyyMMdd
+        Calendar calendar = Calendar.getInstance();
+        try {
+            calendar.setTime(sdf.parse(day));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         try {
             for (int i = 0; i < yearNum; i++) {
                 int key = todayKey - i * 10000;
                 ShareRealm shareRealmToday = arrayData.get(key);
                 if (shareRealmToday != null) {
-                    solarTodayNum++;
-                    if (Math.abs(shareRealmToday.getClosingPrice() - shareRealmToday.getOpenPrice()) / shareRealmToday.getOpenPrice() > rateT) {
+                    solarNum++;
+                    if (Math.abs(shareRealmToday.getClosingPrice() - shareRealmToday.getOpenPrice()) / shareRealmToday.getOpenPrice() > rate) {
                         if (shareRealmToday.getClosingPrice() > shareRealmToday.getOpenPrice()) {
-                            solarTodayYang++;
+                            solarYang++;
                         } else {
-                            solarTodayYin++;
+                            solarYin++;
                         }
                     }
                     for (int j = 1; j < 15; j++) {
@@ -251,9 +269,16 @@ public class ShareFragment extends Fragment {
                         if (shareRealmYestoday != null) {
                             if (Math.abs(shareRealmToday.getClosingPrice() - shareRealmYestoday.getClosingPrice()) / shareRealmYestoday.getClosingPrice() > rate) {
                                 if (shareRealmToday.getClosingPrice() - shareRealmYestoday.getClosingPrice() > 0) {
-                                    solarTodayRise++;
+                                    solarRise++;
                                 } else {
-                                    solarTodayFall++;
+                                    solarFall++;
+                                }
+                            }
+                            if (Math.abs(shareRealmToday.getOpenPrice() - shareRealmYestoday.getClosingPrice()) / shareRealmYestoday.getClosingPrice() > rate) {
+                                if (shareRealmToday.getOpenPrice() - shareRealmYestoday.getClosingPrice() > 0) {
+                                    solarHighOpen++;
+                                } else {
+                                    solarLowOpen++;
                                 }
                             }
                             break;
@@ -265,7 +290,7 @@ public class ShareFragment extends Fragment {
             }
 
             String lunarTodayStr = CalendarUtil.solarToLunar(day);
-            Log.e("wuzhiyun", lunarTodayStr);
+            Log.e("wuzhiyun" + code, "阴历：" + lunarTodayStr);
             int lunarTodayYear = Integer.valueOf(lunarTodayStr.substring(0, 4));
             String lunarTodayDate = lunarTodayStr.substring(4);
             boolean isLeap = lunarTodayDate.contains("闰");
@@ -274,15 +299,15 @@ public class ShareFragment extends Fragment {
             }
             for (int i = 0; i < yearNum; i++) {
                 int key = Integer.valueOf(CalendarUtil.lunarToSolar((lunarTodayYear - i) + lunarTodayDate, isLeap));
-                Log.e("wuzhiyun", "key:" + key);
+                Log.e("wuzhiyun" + code, "key:" + key);
                 ShareRealm shareRealmToday = arrayData.get(key);
                 if (shareRealmToday != null) {
-                    lunarTodayNum++;
-                    if (Math.abs(shareRealmToday.getClosingPrice() - shareRealmToday.getOpenPrice()) / shareRealmToday.getOpenPrice() > rateT) {
+                    lunarNum++;
+                    if (Math.abs(shareRealmToday.getClosingPrice() - shareRealmToday.getOpenPrice()) / shareRealmToday.getOpenPrice() > rate) {
                         if (shareRealmToday.getClosingPrice() > shareRealmToday.getOpenPrice()) {
-                            lunarTodayYang++;
+                            lunarYang++;
                         } else {
-                            lunarTodayYin++;
+                            lunarYin++;
                         }
                     }
                     for (int j = 1; j < 15; j++) {
@@ -291,9 +316,16 @@ public class ShareFragment extends Fragment {
                         if (shareRealmYestoday != null) {
                             if (Math.abs(shareRealmToday.getClosingPrice() - shareRealmYestoday.getClosingPrice()) / shareRealmYestoday.getClosingPrice() > rate) {
                                 if (shareRealmToday.getClosingPrice() - shareRealmYestoday.getClosingPrice() > 0) {
-                                    lunarTodayRise++;
+                                    lunarRise++;
                                 } else {
-                                    lunarTodayFall++;
+                                    lunarFall++;
+                                }
+                            }
+                            if (Math.abs(shareRealmToday.getOpenPrice() - shareRealmYestoday.getClosingPrice()) / shareRealmYestoday.getClosingPrice() > rate) {
+                                if (shareRealmToday.getOpenPrice() - shareRealmYestoday.getClosingPrice() > 0) {
+                                    lunarHighOpen++;
+                                } else {
+                                    lunarLowOpen++;
                                 }
                             }
                             break;
@@ -325,46 +357,62 @@ public class ShareFragment extends Fragment {
     private float rateT = 0.02f;//做T需要浮动比例
     private int yearNum = 13;
 
-    private int solarTodayNum = 0;//阳历今天统计样本数
-    private int solarTodayRise = 0;//阳历今天上涨次数
-    private int solarTodayFall = 0;//阳历今天下跌次数
-    private int solarTodayYang = 0;//阳历今天阳线次数
-    private int solarTodayYin = 0;//阳历今天阴线次数
+    private int solarNum = 0;//阳历统计样本数
+    private int solarRise = 0;//阳历上涨次数
+    private int solarFall = 0;//阳历下跌次数
+    private int solarYang = 0;//阳历阳线次数
+    private int solarYin = 0;//阳历阴线次数
+    private int solarHighOpen = 0;//阳历高开次数
+    private int solarLowOpen = 0;//阳历低开次数
 
-    private int lunarTodayNum = 0;//阴历今天统计样本数
-    private int lunarTodayRise = 0;//阴历今天上涨次数
-    private int lunarTodayFall = 0;//阴历今天下跌次数
-    private int lunarTodayYang = 0;//阴历今天阳线次数
-    private int lunarTodayYin = 0;//阴历今天阴线次数
+    private int lunarNum = 0;//阴历统计样本数
+    private int lunarRise = 0;//阴历上涨次数
+    private int lunarFall = 0;//阴历下跌次数
+    private int lunarYang = 0;//阴历阳线次数
+    private int lunarYin = 0;//阴历阴线次数
+    private int lunarHighOpen = 0;//阴历历高开次数
+    private int lunarLowOpen = 0;//阴历低开次数
+
 
     private void initData() {
         arrayData.clear();
-        solarTodayNum = 0;//阳历今天统计样本数
-        solarTodayRise = 0;//阳历今天上涨次数
-        solarTodayFall = 0;//阳历今天下跌次数
-        solarTodayYang = 0;//阳历今天阳线次数
-        solarTodayYin = 0;//阳历今天阴线次数
-        lunarTodayNum = 0;//阴历今天统计样本数
-        lunarTodayRise = 0;//阴历今天上涨次数
-        lunarTodayFall = 0;//阴历今天下跌次数
-        lunarTodayYang = 0;//阴历今天阳线次数
-        lunarTodayYin = 0;//阴历今天阴线次数
+        solarNum = 0;//阳历今天统计样本数
+        solarRise = 0;//阳历今天上涨次数
+        solarFall = 0;//阳历今天下跌次数
+        solarYang = 0;//阳历今天阳线次数
+        solarYin = 0;//阳历今天阴线次数
+        solarHighOpen = 0;//阳历高开次数
+        solarLowOpen = 0;//阳历低开次数
+
+        lunarNum = 0;//阴历今天统计样本数
+        lunarRise = 0;//阴历今天上涨次数
+        lunarFall = 0;//阴历今天下跌次数
+        lunarYang = 0;//阴历今天阳线次数
+        lunarYin = 0;//阴历今天阴线次数
+        lunarHighOpen = 0;//阴历历高开次数
+        lunarLowOpen = 0;//阴历低开次数
     }
 
-    private void showData(){
+    private void showData() {
         solarTodayNumTxt.post(new Runnable() {
             @Override
             public void run() {
-                solarTodayNumTxt.setText(getString(R.string.solarTodayNum, solarTodayNum));
-                solarTodayRiseTxt.setText(getString(R.string.solarTodayRise, solarTodayRise));
-                solarTodayFallTxt.setText(getString(R.string.solarTodayFall, solarTodayFall));
-                solarTodayYangTxt.setText(getString(R.string.solarTodayYang, solarTodayYang));
-                solarTodayYinTxt.setText(getString(R.string.solarTodayYin, solarTodayYin));
-                lunarTodayNumTxt.setText(getString(R.string.lunarTodayNum, lunarTodayNum));
-                lunarTodayRiseTxt.setText(getString(R.string.lunarTodayRise, lunarTodayRise));
-                lunarTodayFallTxt.setText(getString(R.string.lunarTodayFall, lunarTodayFall));
-                lunarTodayYangTxt.setText(getString(R.string.lunarTodayYang, lunarTodayYang));
-                lunarTodayYinTxt.setText(getString(R.string.lunarTodayYin, lunarTodayYin));
+                solarTodayNumTxt.setText(getString(R.string.solarTodayNum, solarNum));
+                solarTodayRiseTxt.setText(getString(R.string.solarTodayRise, solarRise));
+                solarTodayFallTxt.setText(getString(R.string.solarTodayFall, solarFall));
+                solarTodayYangTxt.setText(getString(R.string.solarTodayYang, solarYang));
+                solarTodayYinTxt.setText(getString(R.string.solarTodayYin, solarYin));
+                solarHighOpenTxt.setText(getString(R.string.solarHighOpen, solarHighOpen));
+                solarLowOpenTxt.setText(getString(R.string.solarLowOpen, solarLowOpen));
+
+
+                lunarTodayNumTxt.setText(getString(R.string.lunarTodayNum, lunarNum));
+                lunarTodayRiseTxt.setText(getString(R.string.lunarTodayRise, lunarRise));
+                lunarTodayFallTxt.setText(getString(R.string.lunarTodayFall, lunarFall));
+                lunarTodayYangTxt.setText(getString(R.string.lunarTodayYang, lunarYang));
+                lunarTodayYinTxt.setText(getString(R.string.lunarTodayYin, lunarYin));
+                lunarHighOpenTxt.setText(getString(R.string.lunarHighOpen, lunarHighOpen));
+                lunarLowOpenTxt.setText(getString(R.string.lunarLowOpen, lunarLowOpen));
             }
         });
     }

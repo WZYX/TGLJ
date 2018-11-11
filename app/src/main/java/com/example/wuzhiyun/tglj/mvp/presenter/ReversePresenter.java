@@ -60,7 +60,7 @@ public class ReversePresenter extends BasePresenter<ReverseContract.Model, Rever
 
     public void getDid() {
         String baseUrl = "lapi/did/app/channel?aid=android1&biz_type=12&channel_id=94&client_sys=android&time=";
-        String time = String.valueOf(System.currentTimeMillis());
+        String time = String.valueOf(System.currentTimeMillis()/1000);
         String auth = md5(baseUrl + time + "vq47Hd9JUgfDCytC");
         String url = baseUrl + time + "&auth=" + auth;
         mModel.getDid(url)

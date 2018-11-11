@@ -1,13 +1,19 @@
 <resources>
     <string name="app_name">TGLJ</string>
-    <string name="solarTodayNum">阳历今天统计样本数：%d</string>
-    <string name="solarTodayRise">阳历今天上涨次数：%d</string>
-    <string name="solarTodayFall">阳历今天下跌次数：%d</string>
-    <string name="solarTodayYang">阳历今天阳线次数：%d</string>
-    <string name="solarTodayYin">阳历今天阴线次数：%d</string>
-    <string name="lunarTodayNum">阴历今天统计样本数：%d</string>
-    <string name="lunarTodayRise">阴历今天上涨次数：%d</string>
-    <string name="lunarTodayFall">阴历今天下跌次数：%d</string>
-    <string name="lunarTodayYang">阴历今天阳线次数：%d</string>
-    <string name="lunarTodayYin">阴历今天阴线次数：%d</string>
+    <string name="solarTodayNum">阳历统计样本数：%d</string>
+    <string name="solarTodayRise">阳历上涨次数：%d</string>
+    <string name="solarTodayFall">阳历下跌次数：%d</string>
+    <string name="solarTodayYang">阳历阳线次数：%d</string>
+    <string name="solarTodayYin">阳历阴线次数：%d</string>
+    <string name="solarHighOpen">阳历高开次数：%d</string>
+    <string name="solarLowOpen">阳历低开次数：%d</string>
+
+
+    <string name="lunarTodayNum">阴历统计样本数：%d</string>
+    <string name="lunarTodayRise">阴历上涨次数：%d</string>
+    <string name="lunarTodayFall">阴历下跌次数：%d</string>
+    <string name="lunarTodayYang">阴历阳线次数：%d</string>
+    <string name="lunarTodayYin">阴历阴线次数：%d</string>
+    <string name="lunarHighOpen">阴历高开次数：%d</string>
+    <string name="lunarLowOpen">阴历低开次数：%d</string>
 </resources>
