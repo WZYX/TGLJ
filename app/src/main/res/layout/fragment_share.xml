@@ -3,13 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp">
+    android:paddingBottom="10dp"
+    android:paddingTop="10dp">
+
+    <TextView
+        android:id="@+id/solar_today_day"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp" />
 
     <TextView
         android:id="@+id/solar_today_num"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/solar_today_day"
         android:layout_marginTop="10dp" />
 
     <TextView
@@ -39,12 +46,14 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/solar_today_yang"
         android:layout_marginTop="10dp" />
+
     <TextView
         android:id="@+id/solar_high_open"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/solar_today_yin"
         android:layout_marginTop="10dp" />
+
     <TextView
         android:id="@+id/solar_low_open"
         android:layout_width="wrap_content"
@@ -53,11 +62,17 @@
         android:layout_marginTop="10dp" />
 
     <TextView
-        android:id="@+id/lunar_today_num"
+        android:id="@+id/lunar_today_day"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/solar_today_yin"
         android:layout_marginTop="20dp" />
+    <TextView
+        android:id="@+id/lunar_today_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lunar_today_day"
+        android:layout_marginTop="10dp" />
 
     <TextView
         android:id="@+id/lunar_today_rise"
@@ -86,12 +101,14 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/lunar_today_yang"
         android:layout_marginTop="10dp" />
+
     <TextView
         android:id="@+id/lunar_high_open"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/lunar_today_yin"
         android:layout_marginTop="10dp" />
+
     <TextView
         android:id="@+id/lunar_low_open"
         android:layout_width="wrap_content"

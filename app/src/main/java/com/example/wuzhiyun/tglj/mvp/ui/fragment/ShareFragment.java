@@ -40,6 +40,8 @@ import io.realm.Sort;
 
 public class ShareFragment extends Fragment {
     View mView;
+    @BindView(R.id.solar_today_day)
+    TextView solarTodayDayTxt;
     @BindView(R.id.solar_today_num)
     TextView solarTodayNumTxt;
     @BindView(R.id.solar_today_rise)
@@ -50,6 +52,8 @@ public class ShareFragment extends Fragment {
     TextView solarTodayYangTxt;
     @BindView(R.id.solar_today_yin)
     TextView solarTodayYinTxt;
+    @BindView(R.id.lunar_today_day)
+    TextView lunarTodayDayTxt;
     @BindView(R.id.lunar_today_num)
     TextView lunarTodayNumTxt;
     @BindView(R.id.lunar_today_rise)
@@ -243,6 +247,7 @@ public class ShareFragment extends Fragment {
 
     private void analyze(String day) {
         Log.e("wuzhiyun" + code, "统计日期：" + day);
+        solarTodayDayTxt.setText("统计日期(阳历)："+day);
         int todayKey = Integer.valueOf(day);//yyyyMMdd
         Calendar calendar = Calendar.getInstance();
         try {
@@ -290,6 +295,7 @@ public class ShareFragment extends Fragment {
             }
 
             String lunarTodayStr = CalendarUtil.solarToLunar(day);
+            lunarTodayDayTxt.setText("统计日期(阴历)："+lunarTodayStr);
             Log.e("wuzhiyun" + code, "阴历：" + lunarTodayStr);
             int lunarTodayYear = Integer.valueOf(lunarTodayStr.substring(0, 4));
             String lunarTodayDate = lunarTodayStr.substring(4);
