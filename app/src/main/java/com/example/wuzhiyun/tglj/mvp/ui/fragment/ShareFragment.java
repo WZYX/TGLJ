@@ -73,6 +73,12 @@ public class ShareFragment extends Fragment {
     TextView lunarHighOpenTxt;
     @BindView(R.id.lunar_low_open)
     TextView lunarLowOpenTxt;
+    @BindView(R.id.yin_yang_5)
+    TextView yinYang5Txt;
+    @BindView(R.id.yin_yang_10)
+    TextView yinYang10Txt;
+    @BindView(R.id.yin_yang_20)
+    TextView yinYang20Txt;
     private String code;//股票代码
     private SparseArray<ShareRealm> arrayData;//k线数据
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -235,19 +241,154 @@ public class ShareFragment extends Fragment {
 
                     }
                 });
+                realm.close();
                 if (calendar.get(Calendar.HOUR_OF_DAY) < 15) {
                     analyze(today);
                 } else {
                     analyze(tomorrow);
                 }
-                realm.close();
+                analyzeK();
             }
         }.start();
     }
 
+    //相似阴阳线；true为阳
+    private boolean[] yinYang5 = new boolean[5];
+    private boolean[] yinYang10 = new boolean[10];
+    private boolean[] yinYang20 = new boolean[20];
+    private boolean[] yinYang5Tem = new boolean[5];
+    private boolean[] yinYang10Tem = new boolean[10];
+    private boolean[] yinYang20Tem = new boolean[20];
+    private int yinYang5Index = 0;
+    private int yinYang10Index = 0;
+    private int yinYang20Index = 0;
+
+    //寻找相似K线
+    private void analyzeK() {
+        initYinYang();
+        for (int i = arrayData.size() - 1; i > 4; i--) {
+            ShareRealm shareRealmI = arrayData.valueAt(i);
+            compareYinYang(shareRealmI);
+        }
+    }
+
+    //连续交易日阴阳线相同
+    private void compareYinYang(ShareRealm shareRealm) {
+        yinYang5Tem[yinYang5Index] = shareRealm.getClosingPrice() > shareRealm.getOpenPrice();
+        yinYang10Tem[yinYang10Index] = shareRealm.getClosingPrice() > shareRealm.getOpenPrice();
+        yinYang20Tem[yinYang20Index] = shareRealm.getClosingPrice() > shareRealm.getOpenPrice();
+        if (yinYang5Index == 4) {
+            yinYang5Index = 0;
+        } else {
+            yinYang5Index++;
+        }
+        if (yinYang10Index == 9) {
+            yinYang10Index = 0;
+        } else {
+            yinYang10Index++;
+        }
+        if (yinYang20Index == 19) {
+            yinYang20Index = 0;
+        } else {
+            yinYang20Index++;
+        }
+        //连续5个交易日阴阳线相同
+        if (yinYang5[0] == yinYang5Tem[yinYang5Index]
+                && yinYang5[1] == yinYang5Tem[yinYang5Index + 1 > 4 ? yinYang5Index - 4 : yinYang5Index + 1]
+                && yinYang5[2] == yinYang5Tem[yinYang5Index + 2 > 4 ? yinYang5Index - 3 : yinYang5Index + 2]
+                && yinYang5[3] == yinYang5Tem[yinYang5Index + 3 > 4 ? yinYang5Index - 2 : yinYang5Index + 3]
+                && yinYang5[4] == yinYang5Tem[yinYang5Index + 4 > 4 ? yinYang5Index - 1 : yinYang5Index + 4]) {
+            if (TextUtils.isEmpty(yinYang5Txt.getText())) {
+                yinYang5Txt.setText("连续5个交易日阴阳线相同：" + shareRealm.getDateYear() + shareRealm.getDate());
+            } else {
+                yinYang5Txt.setText(yinYang5Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+            }
+        }
+        //连续10个交易日阴阳线相同
+        if (yinYang10[0] == yinYang10Tem[yinYang10Index]
+                && yinYang10[1] == yinYang10Tem[yinYang10Index + 1 > 9 ? yinYang10Index - 9 : yinYang10Index + 1]
+                && yinYang10[2] == yinYang10Tem[yinYang10Index + 2 > 9 ? yinYang10Index - 8 : yinYang10Index + 2]
+                && yinYang10[3] == yinYang10Tem[yinYang10Index + 3 > 9 ? yinYang10Index - 7 : yinYang10Index + 3]
+                && yinYang10[4] == yinYang10Tem[yinYang10Index + 4 > 9 ? yinYang10Index - 6 : yinYang10Index + 4]
+                && yinYang10[5] == yinYang10Tem[yinYang10Index + 5 > 9 ? yinYang10Index - 5 : yinYang10Index + 5]
+                && yinYang10[6] == yinYang10Tem[yinYang10Index + 6 > 9 ? yinYang10Index - 4 : yinYang10Index + 6]
+                && yinYang10[7] == yinYang10Tem[yinYang10Index + 7 > 9 ? yinYang10Index - 3 : yinYang10Index + 7]
+                && yinYang10[8] == yinYang10Tem[yinYang10Index + 8 > 9 ? yinYang10Index - 2 : yinYang10Index + 8]
+                && yinYang10[9] == yinYang10Tem[yinYang10Index + 9 > 9 ? yinYang10Index - 1 : yinYang10Index + 9]) {
+            if (TextUtils.isEmpty(yinYang10Txt.getText())) {
+                yinYang10Txt.setText("连续10个交易日阴阳线相同：" + shareRealm.getDateYear() + shareRealm.getDate());
+            } else {
+                yinYang10Txt.setText(yinYang10Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+            }
+
+        }
+        //连续20个交易日阴阳线相同
+        if (yinYang20[0] == yinYang20Tem[yinYang20Index]
+                && yinYang20[1] == yinYang20Tem[yinYang20Index + 1 > 9 ? yinYang20Index - 9 : yinYang20Index + 1]
+                && yinYang20[2] == yinYang20Tem[yinYang20Index + 2 > 9 ? yinYang20Index - 8 : yinYang20Index + 2]
+                && yinYang20[3] == yinYang20Tem[yinYang20Index + 3 > 9 ? yinYang20Index - 7 : yinYang20Index + 3]
+                && yinYang20[4] == yinYang20Tem[yinYang20Index + 4 > 9 ? yinYang20Index - 6 : yinYang20Index + 4]
+                && yinYang20[5] == yinYang20Tem[yinYang20Index + 5 > 9 ? yinYang20Index - 5 : yinYang20Index + 5]
+                && yinYang20[6] == yinYang20Tem[yinYang20Index + 6 > 9 ? yinYang20Index - 4 : yinYang20Index + 6]
+                && yinYang20[7] == yinYang20Tem[yinYang20Index + 7 > 9 ? yinYang20Index - 3 : yinYang20Index + 7]
+                && yinYang20[8] == yinYang20Tem[yinYang20Index + 8 > 9 ? yinYang20Index - 2 : yinYang20Index + 8]
+                && yinYang20[9] == yinYang20Tem[yinYang20Index + 9 > 9 ? yinYang20Index - 1 : yinYang20Index + 9]) {
+            if (TextUtils.isEmpty(yinYang20Txt.getText())) {
+                yinYang20Txt.setText("连续20个交易日阴阳线相同：" + shareRealm.getDateYear() + shareRealm.getDate());
+            } else {
+                yinYang20Txt.setText(yinYang20Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+            }
+        }
+    }
+
+    private void initYinYang() {
+        if (arrayData.size() >= 5) {
+            yinYang5[0] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
+            yinYang5[1] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
+            yinYang5[2] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
+            yinYang5[3] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
+            yinYang5[4] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
+        }
+        if (arrayData.size() >= 10) {
+            yinYang10[0] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
+            yinYang10[1] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
+            yinYang10[2] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
+            yinYang10[3] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
+            yinYang10[4] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
+            yinYang10[5] = arrayData.valueAt(5).getClosingPrice() > arrayData.valueAt(5).getOpenPrice();
+            yinYang10[6] = arrayData.valueAt(6).getClosingPrice() > arrayData.valueAt(6).getOpenPrice();
+            yinYang10[7] = arrayData.valueAt(7).getClosingPrice() > arrayData.valueAt(7).getOpenPrice();
+            yinYang10[8] = arrayData.valueAt(8).getClosingPrice() > arrayData.valueAt(8).getOpenPrice();
+            yinYang10[9] = arrayData.valueAt(9).getClosingPrice() > arrayData.valueAt(9).getOpenPrice();
+        }
+        if (arrayData.size() >= 20) {
+            yinYang20[0] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
+            yinYang20[1] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
+            yinYang20[2] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
+            yinYang20[3] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
+            yinYang20[4] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
+            yinYang20[5] = arrayData.valueAt(5).getClosingPrice() > arrayData.valueAt(5).getOpenPrice();
+            yinYang20[6] = arrayData.valueAt(6).getClosingPrice() > arrayData.valueAt(6).getOpenPrice();
+            yinYang20[7] = arrayData.valueAt(7).getClosingPrice() > arrayData.valueAt(7).getOpenPrice();
+            yinYang20[8] = arrayData.valueAt(8).getClosingPrice() > arrayData.valueAt(8).getOpenPrice();
+            yinYang20[9] = arrayData.valueAt(9).getClosingPrice() > arrayData.valueAt(9).getOpenPrice();
+            yinYang20[10] = arrayData.valueAt(10).getClosingPrice() > arrayData.valueAt(10).getOpenPrice();
+            yinYang20[11] = arrayData.valueAt(11).getClosingPrice() > arrayData.valueAt(11).getOpenPrice();
+            yinYang20[12] = arrayData.valueAt(12).getClosingPrice() > arrayData.valueAt(12).getOpenPrice();
+            yinYang20[13] = arrayData.valueAt(13).getClosingPrice() > arrayData.valueAt(13).getOpenPrice();
+            yinYang20[14] = arrayData.valueAt(14).getClosingPrice() > arrayData.valueAt(14).getOpenPrice();
+            yinYang20[15] = arrayData.valueAt(15).getClosingPrice() > arrayData.valueAt(15).getOpenPrice();
+            yinYang20[16] = arrayData.valueAt(16).getClosingPrice() > arrayData.valueAt(16).getOpenPrice();
+            yinYang20[17] = arrayData.valueAt(17).getClosingPrice() > arrayData.valueAt(17).getOpenPrice();
+            yinYang20[18] = arrayData.valueAt(18).getClosingPrice() > arrayData.valueAt(18).getOpenPrice();
+            yinYang20[19] = arrayData.valueAt(19).getClosingPrice() > arrayData.valueAt(19).getOpenPrice();
+        }
+    }
+
+    //统计次数
     private void analyze(String day) {
         Log.e("wuzhiyun" + code, "统计日期：" + day);
-        solarTodayDayTxt.setText("统计日期(阳历)："+day);
+        solarTodayDayTxt.setText("统计日期(阳历)：" + day);
         int todayKey = Integer.valueOf(day);//yyyyMMdd
         Calendar calendar = Calendar.getInstance();
         try {
@@ -295,7 +436,7 @@ public class ShareFragment extends Fragment {
             }
 
             String lunarTodayStr = CalendarUtil.solarToLunar(day);
-            lunarTodayDayTxt.setText("统计日期(阴历)："+lunarTodayStr);
+            lunarTodayDayTxt.setText("统计日期(阴历)：" + lunarTodayStr);
             Log.e("wuzhiyun" + code, "阴历：" + lunarTodayStr);
             int lunarTodayYear = Integer.valueOf(lunarTodayStr.substring(0, 4));
             String lunarTodayDate = lunarTodayStr.substring(4);

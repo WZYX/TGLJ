@@ -67,6 +67,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/solar_today_yin"
         android:layout_marginTop="20dp" />
+
     <TextView
         android:id="@+id/lunar_today_num"
         android:layout_width="wrap_content"
@@ -114,6 +115,27 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/lunar_high_open"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/yin_yang_5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lunar_low_open"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:id="@+id/yin_yang_10"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/yin_yang_5"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/yin_yang_20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/yin_yang_10"
         android:layout_marginTop="10dp" />
 
 </RelativeLayout>
