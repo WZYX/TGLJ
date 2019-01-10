@@ -322,19 +322,71 @@ public class ShareFragment extends Fragment {
             }
 
         }
-        //连续20个交易日阴阳线相同
-        if (yinYang20[0] == yinYang20Tem[yinYang20Index]
-                && yinYang20[1] == yinYang20Tem[yinYang20Index + 1 > 9 ? yinYang20Index - 9 : yinYang20Index + 1]
-                && yinYang20[2] == yinYang20Tem[yinYang20Index + 2 > 9 ? yinYang20Index - 8 : yinYang20Index + 2]
-                && yinYang20[3] == yinYang20Tem[yinYang20Index + 3 > 9 ? yinYang20Index - 7 : yinYang20Index + 3]
-                && yinYang20[4] == yinYang20Tem[yinYang20Index + 4 > 9 ? yinYang20Index - 6 : yinYang20Index + 4]
-                && yinYang20[5] == yinYang20Tem[yinYang20Index + 5 > 9 ? yinYang20Index - 5 : yinYang20Index + 5]
-                && yinYang20[6] == yinYang20Tem[yinYang20Index + 6 > 9 ? yinYang20Index - 4 : yinYang20Index + 6]
-                && yinYang20[7] == yinYang20Tem[yinYang20Index + 7 > 9 ? yinYang20Index - 3 : yinYang20Index + 7]
-                && yinYang20[8] == yinYang20Tem[yinYang20Index + 8 > 9 ? yinYang20Index - 2 : yinYang20Index + 8]
-                && yinYang20[9] == yinYang20Tem[yinYang20Index + 9 > 9 ? yinYang20Index - 1 : yinYang20Index + 9]) {
+        //连续20个交易日阴阳线中16个相同
+        int num = 0;
+        if (yinYang20[0] == yinYang20Tem[yinYang20Index]) {
+            num++;
+        }
+        if (yinYang20[1] == yinYang20Tem[yinYang20Index + 1 > 19 ? yinYang20Index - 19 : yinYang20Index + 1]) {
+            num++;
+        }
+        if (yinYang20[2] == yinYang20Tem[yinYang20Index + 2 > 19 ? yinYang20Index - 18 : yinYang20Index + 2]) {
+            num++;
+        }
+        if (yinYang20[3] == yinYang20Tem[yinYang20Index + 3 > 19 ? yinYang20Index - 17 : yinYang20Index + 3]) {
+            num++;
+        }
+        if (yinYang20[4] == yinYang20Tem[yinYang20Index + 4 > 19 ? yinYang20Index - 16 : yinYang20Index + 4]) {
+            num++;
+        }
+        if (yinYang20[5] == yinYang20Tem[yinYang20Index + 5 > 19 ? yinYang20Index - 15 : yinYang20Index + 5]) {
+            num++;
+        }
+        if (yinYang20[6] == yinYang20Tem[yinYang20Index + 6 > 19 ? yinYang20Index - 14 : yinYang20Index + 6]) {
+            num++;
+        }
+        if (yinYang20[7] == yinYang20Tem[yinYang20Index + 7 > 19 ? yinYang20Index - 13 : yinYang20Index + 7]) {
+            num++;
+        }
+        if (yinYang20[8] == yinYang20Tem[yinYang20Index + 8 > 19 ? yinYang20Index - 12 : yinYang20Index + 8]) {
+            num++;
+        }
+        if (yinYang20[9] == yinYang20Tem[yinYang20Index + 9 > 19 ? yinYang20Index - 11 : yinYang20Index + 9]) {
+            num++;
+        }
+        if (yinYang20[10] == yinYang20Tem[yinYang20Index + 10 > 19 ? yinYang20Index - 10 : yinYang20Index + 10]) {
+            num++;
+        }
+        if (yinYang20[1] == yinYang20Tem[yinYang20Index + 11 > 19 ? yinYang20Index - 9 : yinYang20Index + 11]) {
+            num++;
+        }
+        if (yinYang20[2] == yinYang20Tem[yinYang20Index + 12 > 19 ? yinYang20Index - 8 : yinYang20Index + 12]) {
+            num++;
+        }
+        if (yinYang20[3] == yinYang20Tem[yinYang20Index + 13 > 19 ? yinYang20Index - 7 : yinYang20Index + 13]) {
+            num++;
+        }
+        if (yinYang20[4] == yinYang20Tem[yinYang20Index + 14 > 19 ? yinYang20Index - 6 : yinYang20Index + 14]) {
+            num++;
+        }
+        if (yinYang20[5] == yinYang20Tem[yinYang20Index + 15 > 19 ? yinYang20Index - 5 : yinYang20Index + 15]) {
+            num++;
+        }
+        if (yinYang20[6] == yinYang20Tem[yinYang20Index + 16 > 19 ? yinYang20Index - 4 : yinYang20Index + 16]) {
+            num++;
+        }
+        if (yinYang20[7] == yinYang20Tem[yinYang20Index + 17 > 19 ? yinYang20Index - 3 : yinYang20Index + 17]) {
+            num++;
+        }
+        if (yinYang20[8] == yinYang20Tem[yinYang20Index + 18 > 19 ? yinYang20Index - 2 : yinYang20Index + 18]) {
+            num++;
+        }
+        if (yinYang20[9] == yinYang20Tem[yinYang20Index + 19 > 19 ? yinYang20Index - 1 : yinYang20Index + 19]) {
+            num++;
+        }
+        if (num >= 16 ) {
             if (TextUtils.isEmpty(yinYang20Txt.getText())) {
-                yinYang20Txt.setText("连续20个交易日阴阳线相同：" + shareRealm.getDateYear() + shareRealm.getDate());
+                yinYang20Txt.setText("连续20个交易日阴阳线16个相同：" + shareRealm.getDateYear() + shareRealm.getDate());
             } else {
                 yinYang20Txt.setText(yinYang20Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
             }
