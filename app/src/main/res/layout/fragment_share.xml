@@ -1,141 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="10dp"
-    android:paddingTop="10dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/solar_today_day"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp">
 
-    <TextView
-        android:id="@+id/solar_today_num"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/solar_today_day"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/solar_today_day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/solar_today_rise"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/solar_today_num"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/solar_today_num"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/solar_today_day"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/solar_today_fall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/solar_today_rise"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/solar_today_rise"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/solar_today_num"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/solar_today_yang"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/solar_today_fall"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/solar_today_fall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/solar_today_rise"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/solar_today_yin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/solar_today_yang"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/solar_today_yang"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/solar_today_fall"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/solar_high_open"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/solar_today_yin"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/solar_today_yin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/solar_today_yang"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/solar_low_open"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/solar_high_open"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/solar_high_open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/solar_today_yin"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/lunar_today_day"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/solar_today_yin"
-        android:layout_marginTop="20dp" />
+        <TextView
+            android:id="@+id/solar_low_open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/solar_high_open"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/lunar_today_num"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lunar_today_day"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/lunar_today_day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/solar_today_yin"
+            android:layout_marginTop="20dp" />
 
-    <TextView
-        android:id="@+id/lunar_today_rise"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lunar_today_num"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/lunar_today_num"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lunar_today_day"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/lunar_today_fall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lunar_today_rise"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/lunar_today_rise"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lunar_today_num"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/lunar_today_yang"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lunar_today_fall"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/lunar_today_fall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lunar_today_rise"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/lunar_today_yin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lunar_today_yang"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/lunar_today_yang"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lunar_today_fall"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/lunar_high_open"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lunar_today_yin"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/lunar_today_yin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lunar_today_yang"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/lunar_low_open"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lunar_high_open"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/lunar_high_open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lunar_today_yin"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/yin_yang_5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lunar_low_open"
-        android:layout_marginTop="20dp" />
+        <TextView
+            android:id="@+id/lunar_low_open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lunar_high_open"
+            android:layout_marginTop="10dp" />
 
-    <TextView
-        android:id="@+id/yin_yang_10"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/yin_yang_5"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/yin_yang_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/lunar_low_open"
+            android:layout_marginTop="20dp" />
 
-    <TextView
-        android:id="@+id/yin_yang_20"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/yin_yang_10"
-        android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/yin_yang_10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/yin_yang_5"
+            android:layout_marginTop="10dp" />
 
-</RelativeLayout>
+        <TextView
+            android:id="@+id/yin_yang_20"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/yin_yang_10"
+            android:layout_marginTop="10dp" />
+
+        <TextView
+            android:id="@+id/raise_fall_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/yin_yang_20"
+            android:layout_marginTop="20dp" />
+
+        <TextView
+            android:id="@+id/raise_fall_10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/raise_fall_5"
+            android:layout_marginTop="10dp" />
+
+        <TextView
+            android:id="@+id/raise_fall_20"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/raise_fall_10"
+            android:layout_marginTop="10dp" />
+
+    </RelativeLayout>
+</ScrollView>

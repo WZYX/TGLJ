@@ -79,6 +79,12 @@ public class ShareFragment extends Fragment {
     TextView yinYang10Txt;
     @BindView(R.id.yin_yang_20)
     TextView yinYang20Txt;
+    @BindView(R.id.raise_fall_5)
+    TextView raiseFall5Txt;
+    @BindView(R.id.raise_fall_10)
+    TextView raiseFall10Txt;
+    @BindView(R.id.raise_fall_20)
+    TextView raiseFall20Txt;
     private String code;//股票代码
     private SparseArray<ShareRealm> arrayData;//k线数据
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -262,17 +268,195 @@ public class ShareFragment extends Fragment {
     private int yinYang5Index = 0;
     private int yinYang10Index = 0;
     private int yinYang20Index = 0;
+    //相似涨跌；true为涨
+    private boolean[] raiseFall5 = new boolean[5];
+    private boolean[] raiseFall10 = new boolean[10];
+    private boolean[] raiseFall20 = new boolean[20];
+    private boolean[] raiseFall5Tem = new boolean[5];
+    private boolean[] raiseFall10Tem = new boolean[10];
+    private boolean[] raiseFall20Tem = new boolean[20];
+    private int raiseFall5Index = 0;
+    private int raiseFall10Index = 0;
+    private int raiseFall20Index = 0;
 
     //寻找相似K线
     private void analyzeK() {
         initYinYang();
+        initRaiseFall();
         for (int i = arrayData.size() - 1; i > 4; i--) {
             ShareRealm shareRealmI = arrayData.valueAt(i);
+            ShareRealm shareRealmI1 = arrayData.valueAt(i - 1);
             compareYinYang(shareRealmI);
+            compareRaiseFall(shareRealmI, shareRealmI1);
         }
     }
 
-    //连续交易日阴阳线相同
+    private void initRaiseFall() {
+        if (arrayData.size() >= 6) {
+            raiseFall5[5] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(1).getClosingPrice();
+            raiseFall5[4] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(2).getClosingPrice();
+            raiseFall5[3] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(3).getClosingPrice();
+            raiseFall5[2] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(4).getClosingPrice();
+            raiseFall5[1] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(5).getClosingPrice();
+        }
+        if (arrayData.size() >= 11) {
+            raiseFall10[9] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(1).getClosingPrice();
+            raiseFall10[8] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(2).getClosingPrice();
+            raiseFall10[7] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(3).getClosingPrice();
+            raiseFall10[6] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(4).getClosingPrice();
+            raiseFall10[5] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(5).getClosingPrice();
+            raiseFall10[4] = arrayData.valueAt(5).getClosingPrice() > arrayData.valueAt(6).getClosingPrice();
+            raiseFall10[3] = arrayData.valueAt(6).getClosingPrice() > arrayData.valueAt(7).getClosingPrice();
+            raiseFall10[2] = arrayData.valueAt(7).getClosingPrice() > arrayData.valueAt(8).getClosingPrice();
+            raiseFall10[1] = arrayData.valueAt(8).getClosingPrice() > arrayData.valueAt(9).getClosingPrice();
+            raiseFall10[0] = arrayData.valueAt(9).getClosingPrice() > arrayData.valueAt(10).getClosingPrice();
+        }
+        if (arrayData.size() >= 21) {
+            raiseFall20[19] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(1).getClosingPrice();
+            raiseFall20[18] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(2).getClosingPrice();
+            raiseFall20[17] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(3).getClosingPrice();
+            raiseFall20[16] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(4).getClosingPrice();
+            raiseFall20[15] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(5).getClosingPrice();
+            raiseFall20[14] = arrayData.valueAt(5).getClosingPrice() > arrayData.valueAt(6).getClosingPrice();
+            raiseFall20[13] = arrayData.valueAt(6).getClosingPrice() > arrayData.valueAt(7).getClosingPrice();
+            raiseFall20[12] = arrayData.valueAt(7).getClosingPrice() > arrayData.valueAt(8).getClosingPrice();
+            raiseFall20[11] = arrayData.valueAt(8).getClosingPrice() > arrayData.valueAt(9).getClosingPrice();
+            raiseFall20[10] = arrayData.valueAt(9).getClosingPrice() > arrayData.valueAt(10).getClosingPrice();
+            raiseFall20[9] = arrayData.valueAt(10).getClosingPrice() > arrayData.valueAt(11).getClosingPrice();
+            raiseFall20[8] = arrayData.valueAt(11).getClosingPrice() > arrayData.valueAt(12).getClosingPrice();
+            raiseFall20[7] = arrayData.valueAt(12).getClosingPrice() > arrayData.valueAt(13).getClosingPrice();
+            raiseFall20[6] = arrayData.valueAt(13).getClosingPrice() > arrayData.valueAt(14).getClosingPrice();
+            raiseFall20[5] = arrayData.valueAt(14).getClosingPrice() > arrayData.valueAt(15).getClosingPrice();
+            raiseFall20[4] = arrayData.valueAt(15).getClosingPrice() > arrayData.valueAt(16).getClosingPrice();
+            raiseFall20[3] = arrayData.valueAt(16).getClosingPrice() > arrayData.valueAt(17).getClosingPrice();
+            raiseFall20[2] = arrayData.valueAt(17).getClosingPrice() > arrayData.valueAt(18).getClosingPrice();
+            raiseFall20[1] = arrayData.valueAt(18).getClosingPrice() > arrayData.valueAt(19).getClosingPrice();
+            raiseFall20[0] = arrayData.valueAt(19).getClosingPrice() > arrayData.valueAt(20).getClosingPrice();
+        }
+    }
+
+    //连续涨跌相同、相似
+    private void compareRaiseFall(ShareRealm shareRealm, ShareRealm shareRealm1) {
+        raiseFall5Tem[raiseFall5Index] = shareRealm1.getClosingPrice() > shareRealm.getClosingPrice();
+        raiseFall10Tem[raiseFall10Index] = shareRealm1.getClosingPrice() > shareRealm.getClosingPrice();
+        raiseFall20Tem[raiseFall20Index] = shareRealm1.getClosingPrice() > shareRealm.getClosingPrice();
+        if (raiseFall5Index == 4) {
+            raiseFall5Index = 0;
+        } else {
+            raiseFall5Index++;
+        }
+        if (raiseFall10Index == 9) {
+            raiseFall10Index = 0;
+        } else {
+            raiseFall10Index++;
+        }
+        if (raiseFall20Index == 19) {
+            raiseFall20Index = 0;
+        } else {
+            raiseFall20Index++;
+        }
+        //连续5个交易日阴阳线相同
+        if (raiseFall5[0] == raiseFall5Tem[raiseFall5Index]
+                && raiseFall5[1] == raiseFall5Tem[raiseFall5Index + 1 > 4 ? raiseFall5Index - 4 : raiseFall5Index + 1]
+                && raiseFall5[2] == raiseFall5Tem[raiseFall5Index + 2 > 4 ? raiseFall5Index - 3 : raiseFall5Index + 2]
+                && raiseFall5[3] == raiseFall5Tem[raiseFall5Index + 3 > 4 ? raiseFall5Index - 2 : raiseFall5Index + 3]
+                && raiseFall5[4] == raiseFall5Tem[raiseFall5Index + 4 > 4 ? raiseFall5Index - 1 : raiseFall5Index + 4]) {
+            if (TextUtils.isEmpty(raiseFall5Txt.getText())) {
+                raiseFall5Txt.setText("连续5个交易日涨跌相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+            } else {
+                raiseFall5Txt.setText(raiseFall5Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+            }
+        }
+        //连续10个交易日阴阳线相同
+        if (raiseFall10[0] == raiseFall10Tem[raiseFall10Index]
+                && raiseFall10[1] == raiseFall10Tem[raiseFall10Index + 1 > 9 ? raiseFall10Index - 9 : raiseFall10Index + 1]
+                && raiseFall10[2] == raiseFall10Tem[raiseFall10Index + 2 > 9 ? raiseFall10Index - 8 : raiseFall10Index + 2]
+                && raiseFall10[3] == raiseFall10Tem[raiseFall10Index + 3 > 9 ? raiseFall10Index - 7 : raiseFall10Index + 3]
+                && raiseFall10[4] == raiseFall10Tem[raiseFall10Index + 4 > 9 ? raiseFall10Index - 6 : raiseFall10Index + 4]
+                && raiseFall10[5] == raiseFall10Tem[raiseFall10Index + 5 > 9 ? raiseFall10Index - 5 : raiseFall10Index + 5]
+                && raiseFall10[6] == raiseFall10Tem[raiseFall10Index + 6 > 9 ? raiseFall10Index - 4 : raiseFall10Index + 6]
+                && raiseFall10[7] == raiseFall10Tem[raiseFall10Index + 7 > 9 ? raiseFall10Index - 3 : raiseFall10Index + 7]
+                && raiseFall10[8] == raiseFall10Tem[raiseFall10Index + 8 > 9 ? raiseFall10Index - 2 : raiseFall10Index + 8]
+                && raiseFall10[9] == raiseFall10Tem[raiseFall10Index + 9 > 9 ? raiseFall10Index - 1 : raiseFall10Index + 9]) {
+            if (TextUtils.isEmpty(raiseFall10Txt.getText())) {
+                raiseFall10Txt.setText("连续10个交易日涨跌相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+            } else {
+                raiseFall10Txt.setText(raiseFall10Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+            }
+
+        }
+        //连续20个交易日阴阳线中16个相同
+        int num = 0;
+        if (raiseFall20[0] == raiseFall20Tem[raiseFall20Index]) {
+            num++;
+        }
+        if (raiseFall20[1] == raiseFall20Tem[raiseFall20Index + 1 > 19 ? raiseFall20Index - 19 : raiseFall20Index + 1]) {
+            num++;
+        }
+        if (raiseFall20[2] == raiseFall20Tem[raiseFall20Index + 2 > 19 ? raiseFall20Index - 18 : raiseFall20Index + 2]) {
+            num++;
+        }
+        if (raiseFall20[3] == raiseFall20Tem[raiseFall20Index + 3 > 19 ? raiseFall20Index - 17 : raiseFall20Index + 3]) {
+            num++;
+        }
+        if (raiseFall20[4] == raiseFall20Tem[raiseFall20Index + 4 > 19 ? raiseFall20Index - 16 : raiseFall20Index + 4]) {
+            num++;
+        }
+        if (raiseFall20[5] == raiseFall20Tem[raiseFall20Index + 5 > 19 ? raiseFall20Index - 15 : raiseFall20Index + 5]) {
+            num++;
+        }
+        if (raiseFall20[6] == raiseFall20Tem[raiseFall20Index + 6 > 19 ? raiseFall20Index - 14 : raiseFall20Index + 6]) {
+            num++;
+        }
+        if (raiseFall20[7] == raiseFall20Tem[raiseFall20Index + 7 > 19 ? raiseFall20Index - 13 : raiseFall20Index + 7]) {
+            num++;
+        }
+        if (raiseFall20[8] == raiseFall20Tem[raiseFall20Index + 8 > 19 ? raiseFall20Index - 12 : raiseFall20Index + 8]) {
+            num++;
+        }
+        if (raiseFall20[9] == raiseFall20Tem[raiseFall20Index + 9 > 19 ? raiseFall20Index - 11 : raiseFall20Index + 9]) {
+            num++;
+        }
+        if (raiseFall20[10] == raiseFall20Tem[raiseFall20Index + 10 > 19 ? raiseFall20Index - 10 : raiseFall20Index + 10]) {
+            num++;
+        }
+        if (raiseFall20[1] == raiseFall20Tem[raiseFall20Index + 11 > 19 ? raiseFall20Index - 9 : raiseFall20Index + 11]) {
+            num++;
+        }
+        if (raiseFall20[2] == raiseFall20Tem[raiseFall20Index + 12 > 19 ? raiseFall20Index - 8 : raiseFall20Index + 12]) {
+            num++;
+        }
+        if (raiseFall20[3] == raiseFall20Tem[raiseFall20Index + 13 > 19 ? raiseFall20Index - 7 : raiseFall20Index + 13]) {
+            num++;
+        }
+        if (raiseFall20[4] == raiseFall20Tem[raiseFall20Index + 14 > 19 ? raiseFall20Index - 6 : raiseFall20Index + 14]) {
+            num++;
+        }
+        if (raiseFall20[5] == raiseFall20Tem[raiseFall20Index + 15 > 19 ? raiseFall20Index - 5 : raiseFall20Index + 15]) {
+            num++;
+        }
+        if (raiseFall20[6] == raiseFall20Tem[raiseFall20Index + 16 > 19 ? raiseFall20Index - 4 : raiseFall20Index + 16]) {
+            num++;
+        }
+        if (raiseFall20[7] == raiseFall20Tem[raiseFall20Index + 17 > 19 ? raiseFall20Index - 3 : raiseFall20Index + 17]) {
+            num++;
+        }
+        if (raiseFall20[8] == raiseFall20Tem[raiseFall20Index + 18 > 19 ? raiseFall20Index - 2 : raiseFall20Index + 18]) {
+            num++;
+        }
+        if (raiseFall20[9] == raiseFall20Tem[raiseFall20Index + 19 > 19 ? raiseFall20Index - 1 : raiseFall20Index + 19]) {
+            num++;
+        }
+        if (num >= 16) {
+            if (TextUtils.isEmpty(raiseFall20Txt.getText())) {
+                raiseFall20Txt.setText("连续20个交易日涨跌16个相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+            } else {
+                raiseFall20Txt.setText(raiseFall20Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+            }
+        }
+    }
+
+    //连续交易日阴阳线相同、相似
     private void compareYinYang(ShareRealm shareRealm) {
         yinYang5Tem[yinYang5Index] = shareRealm.getClosingPrice() > shareRealm.getOpenPrice();
         yinYang10Tem[yinYang10Index] = shareRealm.getClosingPrice() > shareRealm.getOpenPrice();
@@ -384,7 +568,7 @@ public class ShareFragment extends Fragment {
         if (yinYang20[9] == yinYang20Tem[yinYang20Index + 19 > 19 ? yinYang20Index - 1 : yinYang20Index + 19]) {
             num++;
         }
-        if (num >= 16 ) {
+        if (num >= 16) {
             if (TextUtils.isEmpty(yinYang20Txt.getText())) {
                 yinYang20Txt.setText("连续20个交易日阴阳线16个相同：" + shareRealm.getDateYear() + shareRealm.getDate());
             } else {
@@ -395,45 +579,45 @@ public class ShareFragment extends Fragment {
 
     private void initYinYang() {
         if (arrayData.size() >= 5) {
-            yinYang5[0] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
-            yinYang5[1] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
-            yinYang5[2] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
-            yinYang5[3] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
-            yinYang5[4] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
+            yinYang5[5] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
+            yinYang5[4] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
+            yinYang5[3] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
+            yinYang5[2] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
+            yinYang5[1] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
         }
         if (arrayData.size() >= 10) {
-            yinYang10[0] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
-            yinYang10[1] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
-            yinYang10[2] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
-            yinYang10[3] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
-            yinYang10[4] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
-            yinYang10[5] = arrayData.valueAt(5).getClosingPrice() > arrayData.valueAt(5).getOpenPrice();
-            yinYang10[6] = arrayData.valueAt(6).getClosingPrice() > arrayData.valueAt(6).getOpenPrice();
-            yinYang10[7] = arrayData.valueAt(7).getClosingPrice() > arrayData.valueAt(7).getOpenPrice();
-            yinYang10[8] = arrayData.valueAt(8).getClosingPrice() > arrayData.valueAt(8).getOpenPrice();
-            yinYang10[9] = arrayData.valueAt(9).getClosingPrice() > arrayData.valueAt(9).getOpenPrice();
+            yinYang10[9] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
+            yinYang10[8] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
+            yinYang10[7] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
+            yinYang10[6] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
+            yinYang10[5] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
+            yinYang10[4] = arrayData.valueAt(5).getClosingPrice() > arrayData.valueAt(5).getOpenPrice();
+            yinYang10[3] = arrayData.valueAt(6).getClosingPrice() > arrayData.valueAt(6).getOpenPrice();
+            yinYang10[2] = arrayData.valueAt(7).getClosingPrice() > arrayData.valueAt(7).getOpenPrice();
+            yinYang10[1] = arrayData.valueAt(8).getClosingPrice() > arrayData.valueAt(8).getOpenPrice();
+            yinYang10[0] = arrayData.valueAt(9).getClosingPrice() > arrayData.valueAt(9).getOpenPrice();
         }
         if (arrayData.size() >= 20) {
-            yinYang20[0] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
-            yinYang20[1] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
-            yinYang20[2] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
-            yinYang20[3] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
-            yinYang20[4] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
-            yinYang20[5] = arrayData.valueAt(5).getClosingPrice() > arrayData.valueAt(5).getOpenPrice();
-            yinYang20[6] = arrayData.valueAt(6).getClosingPrice() > arrayData.valueAt(6).getOpenPrice();
-            yinYang20[7] = arrayData.valueAt(7).getClosingPrice() > arrayData.valueAt(7).getOpenPrice();
-            yinYang20[8] = arrayData.valueAt(8).getClosingPrice() > arrayData.valueAt(8).getOpenPrice();
-            yinYang20[9] = arrayData.valueAt(9).getClosingPrice() > arrayData.valueAt(9).getOpenPrice();
-            yinYang20[10] = arrayData.valueAt(10).getClosingPrice() > arrayData.valueAt(10).getOpenPrice();
-            yinYang20[11] = arrayData.valueAt(11).getClosingPrice() > arrayData.valueAt(11).getOpenPrice();
-            yinYang20[12] = arrayData.valueAt(12).getClosingPrice() > arrayData.valueAt(12).getOpenPrice();
-            yinYang20[13] = arrayData.valueAt(13).getClosingPrice() > arrayData.valueAt(13).getOpenPrice();
-            yinYang20[14] = arrayData.valueAt(14).getClosingPrice() > arrayData.valueAt(14).getOpenPrice();
-            yinYang20[15] = arrayData.valueAt(15).getClosingPrice() > arrayData.valueAt(15).getOpenPrice();
-            yinYang20[16] = arrayData.valueAt(16).getClosingPrice() > arrayData.valueAt(16).getOpenPrice();
-            yinYang20[17] = arrayData.valueAt(17).getClosingPrice() > arrayData.valueAt(17).getOpenPrice();
-            yinYang20[18] = arrayData.valueAt(18).getClosingPrice() > arrayData.valueAt(18).getOpenPrice();
-            yinYang20[19] = arrayData.valueAt(19).getClosingPrice() > arrayData.valueAt(19).getOpenPrice();
+            yinYang20[19] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
+            yinYang20[18] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
+            yinYang20[17] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
+            yinYang20[16] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
+            yinYang20[15] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
+            yinYang20[14] = arrayData.valueAt(5).getClosingPrice() > arrayData.valueAt(5).getOpenPrice();
+            yinYang20[13] = arrayData.valueAt(6).getClosingPrice() > arrayData.valueAt(6).getOpenPrice();
+            yinYang20[12] = arrayData.valueAt(7).getClosingPrice() > arrayData.valueAt(7).getOpenPrice();
+            yinYang20[11] = arrayData.valueAt(8).getClosingPrice() > arrayData.valueAt(8).getOpenPrice();
+            yinYang20[10] = arrayData.valueAt(9).getClosingPrice() > arrayData.valueAt(9).getOpenPrice();
+            yinYang20[9] = arrayData.valueAt(10).getClosingPrice() > arrayData.valueAt(10).getOpenPrice();
+            yinYang20[8] = arrayData.valueAt(11).getClosingPrice() > arrayData.valueAt(11).getOpenPrice();
+            yinYang20[7] = arrayData.valueAt(12).getClosingPrice() > arrayData.valueAt(12).getOpenPrice();
+            yinYang20[6] = arrayData.valueAt(13).getClosingPrice() > arrayData.valueAt(13).getOpenPrice();
+            yinYang20[5] = arrayData.valueAt(14).getClosingPrice() > arrayData.valueAt(14).getOpenPrice();
+            yinYang20[4] = arrayData.valueAt(15).getClosingPrice() > arrayData.valueAt(15).getOpenPrice();
+            yinYang20[3] = arrayData.valueAt(16).getClosingPrice() > arrayData.valueAt(16).getOpenPrice();
+            yinYang20[2] = arrayData.valueAt(17).getClosingPrice() > arrayData.valueAt(17).getOpenPrice();
+            yinYang20[1] = arrayData.valueAt(18).getClosingPrice() > arrayData.valueAt(18).getOpenPrice();
+            yinYang20[0] = arrayData.valueAt(19).getClosingPrice() > arrayData.valueAt(19).getOpenPrice();
         }
     }
 
