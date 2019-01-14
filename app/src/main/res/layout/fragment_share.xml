@@ -161,6 +161,26 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/raise_fall_10"
             android:layout_marginTop="10dp" />
+        <TextView
+            android:id="@+id/raise_fall_range_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/raise_fall_20"
+            android:layout_marginTop="20dp" />
+
+        <TextView
+            android:id="@+id/raise_fall_range_10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/raise_fall_range_5"
+            android:layout_marginTop="10dp" />
+
+        <TextView
+            android:id="@+id/raise_fall_range_20"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/raise_fall_range_10"
+            android:layout_marginTop="10dp" />
 
     </RelativeLayout>
 </ScrollView>
