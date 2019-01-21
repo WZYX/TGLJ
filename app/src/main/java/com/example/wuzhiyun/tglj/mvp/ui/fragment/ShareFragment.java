@@ -315,7 +315,7 @@ public class ShareFragment extends Fragment {
     private int raiseFallRange(double range) {
         int result = 0;
         int leve1 = 2;
-        int leve2 = 3;
+        int leve2 = 4;
         int leve3 = 6;
         int leve4 = 8;
         int leve_1 = -2;
