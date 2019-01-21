@@ -170,7 +170,12 @@ public class ShareFragment extends Fragment {
                             break;
                         }
                         try {
-                            String url = "http://money.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/" + code + ".phtml?year=" + year + "&jidu=" + j;
+                            //网易个股
+                            String url = "http://quotes.money.163.com/trade/lsjysj_" + code + ".html?year=" + year + "&season=" + j;
+                            //网易指数
+//                            String url = "http://quotes.money.163.com/trade/lsjysj_zhishu_" + code + ".html?year=" + year + "&season=" + j;
+                            //新浪
+//                            String url = "http://money.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/" + code + ".phtml?year=" + year + "&jidu=" + j;
                             doc = Jsoup.connect(url).get();
                             if (doc == null) {
                                 isOver = true;
