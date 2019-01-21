@@ -305,23 +305,31 @@ public class ShareFragment extends Fragment {
             ShareRealm shareRealmI1 = arrayData.valueAt(i - 1);
             compareYinYang(shareRealmI);
             compareRaiseFall(shareRealmI, shareRealmI1);
-            if (!"399006".equals(code) && !"399001".equals(code)) {
-                compareRaiseFallRange(shareRealmI, shareRealmI1);
-            }
+            compareRaiseFallRange(shareRealmI, shareRealmI1);
 
         }
     }
 
     private int raiseFallRange(double range) {
         int result = 0;
-        int leve1 = 2;
-        int leve2 = 4;
-        int leve3 = 6;
-        int leve4 = 8;
-        int leve_1 = -2;
-        int leve_2 = -4;
-        int leve_3 = -6;
-        int leve_4 = -8;
+        double leve1 = 2;
+        double leve2 = 4;
+        double leve3 = 6;
+        double leve4 = 8;
+        double leve_1 = -2;
+        double leve_2 = -4;
+        double leve_3 = -6;
+        double leve_4 = -8;
+        if ("000001".equals(code) || "399006".equals(code) || "399001".equals(code)) {
+            leve1 = 0.5;
+            leve2 = 1.5;
+            leve3 = 2.5;
+            leve4 = 3.5;
+            leve_1 = -0.5;
+            leve_2 = -1.5;
+            leve_3 = -2.5;
+            leve_4 = -3.5;
+        }
         if (range > 0) {
             if (range < leve1) {
                 result = 1;
