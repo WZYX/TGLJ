@@ -511,7 +511,7 @@ public class ShareFragment extends Fragment {
             if (TextUtils.isEmpty(raiseFallRange20Txt.getText())) {
                 raiseFallRange20Txt.setText("连续20个交易日涨跌幅16个相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
             } else {
-                raiseFallRange20Txt.setText(raiseFall20Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                raiseFallRange20Txt.setText(raiseFallRange20Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
             }
         }
     }
