@@ -91,6 +91,18 @@ public class ShareFragment extends Fragment {
     TextView raiseFallRange10Txt;
     @BindView(R.id.raise_fall_range_20)
     TextView raiseFallRange20Txt;
+    @BindView(R.id.amplitude_range_5)
+    TextView amplitudeRange5Txt;
+    @BindView(R.id.amplitude_range_10)
+    TextView amplitudeRange10Txt;
+    @BindView(R.id.amplitude_range_20)
+    TextView amplitudeRange20Txt;
+    @BindView(R.id.change_rate_5)
+    TextView changeRate5Txt;
+    @BindView(R.id.change_rate_10)
+    TextView changeRate10Txt;
+    @BindView(R.id.change_rate_20)
+    TextView changeRate20Txt;
     private String code;//股票代码
     private SparseArray<ShareRealm> arrayData;//k线数据
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -171,7 +183,8 @@ public class ShareFragment extends Fragment {
                         }
                         try {
                             //网易个股
-                            String url = "http://quotes.money.163.com/trade/lsjysj_" + code + ".html?year=" + year + "&season=" + j;
+                            String url = (isZhiShu() ? "http://quotes.money.163.com/trade/lsjysj_zhishu_" :
+                                    "http://quotes.money.163.com/trade/lsjysj_") + code + ".html?year=" + year + "&season=" + j;
                             //网易指数
 //                            String url = "http://quotes.money.163.com/trade/lsjysj_zhishu_" + code + ".html?year=" + year + "&season=" + j;
                             //新浪
@@ -188,28 +201,33 @@ public class ShareFragment extends Fragment {
                             isOver = true;
                             break;
                         }
-                        Element table = doc.getElementById("FundHoldSharesTable");
+//                        Element table = doc.getElementById("FundHoldSharesTable");//新浪id
+                        //网易
+                        Element table = doc.getElementsByClass("table_bg001 border_box limit_sale").first();
                         Log.e("wuzhiyun" + code, code + ":" + year + " " + j);
                         if (table == null) {
                             continue;
                         }
-                        Elements trs = table.select("tr");
-                        ShareCodeName shareCodeName = realm.where(ShareCodeName.class).equalTo("code", code).findFirst();
-                        String text = trs.get(0).select("th").get(0).text();
-                        String shareName = text.substring(0, text.indexOf("("));
-                        if (shareCodeName == null || !shareName.equals(shareCodeName.getName())) {
-                            realm.executeTransaction(new Realm.Transaction() {
-                                @Override
-                                public void execute(Realm realm) {
-                                    ShareCodeName shareCodeName1 = new ShareCodeName();
-                                    shareCodeName1.setCode(code);
-                                    shareCodeName1.setName(shareName);
-                                    realm.copyToRealmOrUpdate(shareCodeName1);
-                                    EventBus.getDefault().post(shareCodeName1);
+                        //新浪
+//                        Elements trs = table.select("tr");
+//                        ShareCodeName shareCodeName = realm.where(ShareCodeName.class).equalTo("code", code).findFirst();
+//                        String text = trs.get(0).select("th").get(0).text();
+//                        String shareName = text.substring(0, text.indexOf("("));
+//                        if (shareCodeName == null || !shareName.equals(shareCodeName.getName())) {
+//                            realm.executeTransaction(new Realm.Transaction() {
+//                                @Override
+//                                public void execute(Realm realm) {
+//                                    ShareCodeName shareCodeName1 = new ShareCodeName();
+//                                    shareCodeName1.setCode(code);
+//                                    shareCodeName1.setName(shareName);
+//                                    realm.copyToRealmOrUpdate(shareCodeName1);
+//                                    EventBus.getDefault().post(shareCodeName1);
+//
+//                                }
+//                            });
+//                        }
+                        Elements trs = table.select("tbody").first().select("tr");
 
-                                }
-                            });
-                        }
                         for (int i = 2; i < trs.size(); i++) {
                             Elements tds = trs.get(i).select("td");
                             String dateStr = tds.get(0).text().replace("-", "");
@@ -225,10 +243,11 @@ public class ShareFragment extends Fragment {
                                 shareK.setDate(dateStr.substring(4));
                                 shareK.setOpenPrice(Double.valueOf(tds.get(1).text()));
                                 shareK.setMaxPrice(Double.valueOf(tds.get(2).text()));
-                                shareK.setClosingPrice(Double.valueOf(tds.get(3).text()));
-                                shareK.setMinPrice(Double.valueOf(tds.get(4).text()));
-                                shareK.setVolume(Long.valueOf(tds.get(5).text()));
-                                shareK.setTurnover(Long.valueOf(tds.get(6).text()));
+                                shareK.setMinPrice(Double.valueOf(tds.get(3).text()));
+                                shareK.setClosingPrice(Double.valueOf(tds.get(4).text()));
+                                shareK.setVolume(Long.valueOf(tds.get(7).text()));
+                                shareK.setTurnover(Long.valueOf(tds.get(8).text()));
+                                shareK.setChangeRate(Double.valueOf(tds.get(10).text()));
                                 String dateLunar = CalendarUtil.solarToLunar(dateStr);
                                 shareK.setLeap(dateLunar.contains("闰"));
                                 String lunarTemp = dateLunar.replace("闰", "");
@@ -240,11 +259,11 @@ public class ShareFragment extends Fragment {
                             }
                         }
                         //防爬虫检测
-                        try {
-                            Thread.sleep(new Random().nextInt(5) * 1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+//                        try {
+//                            Thread.sleep(new Random().nextInt(5) * 1000);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
                     }
 
 
@@ -299,22 +318,91 @@ public class ShareFragment extends Fragment {
     private int raiseFallRange5Index = 0;
     private int raiseFallRange10Index = 0;
     private int raiseFallRange20Index = 0;
+    //相似振幅等级；
+    private int[] amplitudeRange5 = new int[5];
+    private int[] amplitudeRange10 = new int[10];
+    private int[] amplitudeRange20 = new int[20];
+    private int[] amplitudeRange5Tem = new int[5];
+    private int[] amplitudeRange10Tem = new int[10];
+    private int[] amplitudeRange20Tem = new int[20];
+    private int amplitudeRange5Index = 0;
+    private int amplitudeRange10Index = 0;
+    private int amplitudeRange20Index = 0;
 
     //寻找相似K线
     private void analyzeK() {
         initYinYang();
         initRaiseFall();
         initRaiseRangeFall();
+        initAmplitude();
         for (int i = arrayData.size() - 1; i > 4; i--) {
             ShareRealm shareRealmI = arrayData.valueAt(i);
             ShareRealm shareRealmI1 = arrayData.valueAt(i - 1);
             compareYinYang(shareRealmI);
             compareRaiseFall(shareRealmI, shareRealmI1);
             compareRaiseFallRange(shareRealmI, shareRealmI1);
+            compareAmplitudeRange(shareRealmI);
 
         }
     }
 
+    //是否是指数
+    private boolean isZhiShu() {
+        return "000001".equals(code) || "399006".equals(code) || "399001".equals(code);
+    }
+
+    //振幅等级
+    private int amplitudeRange(double range){
+        int result = 0;
+        double leve1 = 3;
+        double leve2 = 6;
+        double leve3 = 9;
+        double leve4 = 12;
+        double leve_1 = -3;
+        double leve_2 = -6;
+        double leve_3 = -9;
+        double leve_4 = -12;
+        if (isZhiShu()) {
+            leve1 = 1.5;
+            leve2 = 3;
+            leve3 = 4.5;
+            leve4 = 6;
+            leve_1 = -1.5;
+            leve_2 = -3;
+            leve_3 = -4.5;
+            leve_4 = -6;
+        }
+        if (range > 0) {
+            if (range < leve1) {
+                result = 1;
+            } else if (range < leve2) {
+                result = 2;
+            } else if (range < leve3) {
+                result = 3;
+            } else if (range < leve4) {
+                result = 4;
+            } else {
+                result = 5;
+            }
+        } else {
+            if (range > leve_1) {
+                result = -1;
+            } else if (range > leve_2) {
+                result = -2;
+            } else if (range > leve_3) {
+                result = -3;
+            } else if (range > leve_4) {
+                result = -4;
+            } else {
+                result = -5;
+            }
+
+        }
+        return result;
+    }
+
+
+    //涨跌等级
     private int raiseFallRange(double range) {
         int result = 0;
         double leve1 = 2;
@@ -325,7 +413,7 @@ public class ShareFragment extends Fragment {
         double leve_2 = -4;
         double leve_3 = -6;
         double leve_4 = -8;
-        if ("000001".equals(code) || "399006".equals(code) || "399001".equals(code)) {
+        if (isZhiShu()) {
             leve1 = 0.5;
             leve2 = 1.5;
             leve3 = 2.5;
@@ -364,6 +452,170 @@ public class ShareFragment extends Fragment {
         return result;
     }
 
+    private void initAmplitude() {
+        if (arrayData.size() >= 6) {
+            amplitudeRange5[5] = amplitudeRange((arrayData.valueAt(0).getMaxPrice() - arrayData.valueAt(0).getMinPrice()) / arrayData.valueAt(0).getOpenPrice());
+            amplitudeRange5[4] = amplitudeRange((arrayData.valueAt(1).getMaxPrice() - arrayData.valueAt(1).getMinPrice()) / arrayData.valueAt(1).getOpenPrice());
+            amplitudeRange5[3] = amplitudeRange((arrayData.valueAt(2).getMaxPrice() - arrayData.valueAt(2).getMinPrice()) / arrayData.valueAt(2).getOpenPrice());
+            amplitudeRange5[2] = amplitudeRange((arrayData.valueAt(3).getMaxPrice() - arrayData.valueAt(3).getMinPrice()) / arrayData.valueAt(3).getOpenPrice());
+            amplitudeRange5[1] = amplitudeRange((arrayData.valueAt(4).getMaxPrice() - arrayData.valueAt(4).getMinPrice()) / arrayData.valueAt(4).getOpenPrice());
+        }
+        if (arrayData.size() >= 11) {
+            amplitudeRange10[9] = amplitudeRange((arrayData.valueAt(0).getMaxPrice() - arrayData.valueAt(0).getMinPrice()) / arrayData.valueAt(0).getOpenPrice());
+            amplitudeRange10[8] = amplitudeRange((arrayData.valueAt(1).getMaxPrice() - arrayData.valueAt(1).getMinPrice()) / arrayData.valueAt(1).getOpenPrice());
+            amplitudeRange10[7] = amplitudeRange((arrayData.valueAt(2).getMaxPrice() - arrayData.valueAt(2).getMinPrice()) / arrayData.valueAt(2).getOpenPrice());
+            amplitudeRange10[6] = amplitudeRange((arrayData.valueAt(3).getMaxPrice() - arrayData.valueAt(3).getMinPrice()) / arrayData.valueAt(3).getOpenPrice());
+            amplitudeRange10[5] = amplitudeRange((arrayData.valueAt(4).getMaxPrice() - arrayData.valueAt(4).getMinPrice()) / arrayData.valueAt(4).getOpenPrice());
+            amplitudeRange10[4] = amplitudeRange((arrayData.valueAt(5).getMaxPrice() - arrayData.valueAt(5).getMinPrice()) / arrayData.valueAt(5).getOpenPrice());
+            amplitudeRange10[3] = amplitudeRange((arrayData.valueAt(6).getMaxPrice() - arrayData.valueAt(6).getMinPrice()) / arrayData.valueAt(6).getOpenPrice());
+            amplitudeRange10[2] = amplitudeRange((arrayData.valueAt(7).getMaxPrice() - arrayData.valueAt(7).getMinPrice()) / arrayData.valueAt(7).getOpenPrice());
+            amplitudeRange10[1] = amplitudeRange((arrayData.valueAt(8).getMaxPrice() - arrayData.valueAt(8).getMinPrice()) / arrayData.valueAt(8).getOpenPrice());
+            amplitudeRange10[0] = amplitudeRange((arrayData.valueAt(9).getMaxPrice() - arrayData.valueAt(9).getMinPrice()) / arrayData.valueAt(9).getOpenPrice());
+        }
+        if (arrayData.size() >= 21) {
+            amplitudeRange20[19] = amplitudeRange((arrayData.valueAt(0).getMaxPrice() - arrayData.valueAt(0).getMinPrice()) / arrayData.valueAt(0).getOpenPrice());
+            amplitudeRange20[18] = amplitudeRange((arrayData.valueAt(1).getMaxPrice() - arrayData.valueAt(1).getMinPrice()) / arrayData.valueAt(1).getOpenPrice());
+            amplitudeRange20[17] = amplitudeRange((arrayData.valueAt(2).getMaxPrice() - arrayData.valueAt(2).getMinPrice()) / arrayData.valueAt(2).getOpenPrice());
+            amplitudeRange20[16] = amplitudeRange((arrayData.valueAt(3).getMaxPrice() - arrayData.valueAt(3).getMinPrice()) / arrayData.valueAt(3).getOpenPrice());
+            amplitudeRange20[15] = amplitudeRange((arrayData.valueAt(4).getMaxPrice() - arrayData.valueAt(4).getMinPrice()) / arrayData.valueAt(4).getOpenPrice());
+            amplitudeRange20[14] = amplitudeRange((arrayData.valueAt(5).getMaxPrice() - arrayData.valueAt(5).getMinPrice()) / arrayData.valueAt(5).getOpenPrice());
+            amplitudeRange20[13] = amplitudeRange((arrayData.valueAt(6).getMaxPrice() - arrayData.valueAt(6).getMinPrice()) / arrayData.valueAt(6).getOpenPrice());
+            amplitudeRange20[12] = amplitudeRange((arrayData.valueAt(7).getMaxPrice() - arrayData.valueAt(7).getMinPrice()) / arrayData.valueAt(7).getOpenPrice());
+            amplitudeRange20[11] = amplitudeRange((arrayData.valueAt(8).getMaxPrice() - arrayData.valueAt(8).getMinPrice()) / arrayData.valueAt(8).getOpenPrice());
+            amplitudeRange20[10] = amplitudeRange((arrayData.valueAt(9).getMaxPrice() - arrayData.valueAt(9).getMinPrice()) / arrayData.valueAt(9).getOpenPrice());
+            amplitudeRange20[9] = amplitudeRange((arrayData.valueAt(10).getMaxPrice() - arrayData.valueAt(10).getMinPrice()) / arrayData.valueAt(10).getOpenPrice());
+            amplitudeRange20[8] = amplitudeRange((arrayData.valueAt(11).getMaxPrice() - arrayData.valueAt(11).getMinPrice()) / arrayData.valueAt(11).getOpenPrice());
+            amplitudeRange20[7] = amplitudeRange((arrayData.valueAt(12).getMaxPrice() - arrayData.valueAt(12).getMinPrice()) / arrayData.valueAt(12).getOpenPrice());
+            amplitudeRange20[6] = amplitudeRange((arrayData.valueAt(13).getMaxPrice() - arrayData.valueAt(13).getMinPrice()) / arrayData.valueAt(13).getOpenPrice());
+            amplitudeRange20[5] = amplitudeRange((arrayData.valueAt(14).getMaxPrice() - arrayData.valueAt(14).getMinPrice()) / arrayData.valueAt(14).getOpenPrice());
+            amplitudeRange20[4] = amplitudeRange((arrayData.valueAt(15).getMaxPrice() - arrayData.valueAt(15).getMinPrice()) / arrayData.valueAt(15).getOpenPrice());
+            amplitudeRange20[3] = amplitudeRange((arrayData.valueAt(16).getMaxPrice() - arrayData.valueAt(16).getMinPrice()) / arrayData.valueAt(16).getOpenPrice());
+            amplitudeRange20[2] = amplitudeRange((arrayData.valueAt(17).getMaxPrice() - arrayData.valueAt(17).getMinPrice()) / arrayData.valueAt(17).getOpenPrice());
+            amplitudeRange20[1] = amplitudeRange((arrayData.valueAt(18).getMaxPrice() - arrayData.valueAt(18).getMinPrice()) / arrayData.valueAt(18).getOpenPrice());
+            amplitudeRange20[0] = amplitudeRange((arrayData.valueAt(19).getMaxPrice() - arrayData.valueAt(19).getMinPrice()) / arrayData.valueAt(19).getOpenPrice());
+        }
+    }
+
+    //连续振幅相同、相似
+    private void compareAmplitudeRange(ShareRealm shareRealm) {
+        amplitudeRange5Tem[amplitudeRange5Index] = amplitudeRange((shareRealm.getMaxPrice() - shareRealm.getMinPrice()) / shareRealm.getOpenPrice());
+        amplitudeRange10Tem[amplitudeRange10Index] = amplitudeRange((shareRealm.getMaxPrice() - shareRealm.getMinPrice()) / shareRealm.getOpenPrice());
+        amplitudeRange20Tem[amplitudeRange20Index] = amplitudeRange((shareRealm.getMaxPrice() - shareRealm.getMinPrice()) / shareRealm.getOpenPrice());
+        if (amplitudeRange5Index == 4) {
+            amplitudeRange5Index = 0;
+        } else {
+            amplitudeRange5Index++;
+        }
+        if (amplitudeRange10Index == 9) {
+            amplitudeRange10Index = 0;
+        } else {
+            amplitudeRange10Index++;
+        }
+        if (amplitudeRange20Index == 19) {
+            amplitudeRange20Index = 0;
+        } else {
+            amplitudeRange20Index++;
+        }
+        //连续5个交易日涨跌幅相同
+        if (amplitudeRange5[0] == amplitudeRange5Tem[amplitudeRange5Index]
+                && amplitudeRange5[1] == amplitudeRange5Tem[amplitudeRange5Index + 1 > 4 ? amplitudeRange5Index - 4 : amplitudeRange5Index + 1]
+                && amplitudeRange5[2] == amplitudeRange5Tem[amplitudeRange5Index + 2 > 4 ? amplitudeRange5Index - 3 : amplitudeRange5Index + 2]
+                && amplitudeRange5[3] == amplitudeRange5Tem[amplitudeRange5Index + 3 > 4 ? amplitudeRange5Index - 2 : amplitudeRange5Index + 3]
+                && amplitudeRange5[4] == amplitudeRange5Tem[amplitudeRange5Index + 4 > 4 ? amplitudeRange5Index - 1 : amplitudeRange5Index + 4]) {
+            if (TextUtils.isEmpty(amplitudeRange5Txt.getText())) {
+                amplitudeRange5Txt.setText("连续5个交易日振幅相似：" + shareRealm.getDateYear() + shareRealm.getDate());
+            } else {
+                amplitudeRange5Txt.setText(amplitudeRange5Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+            }
+        }
+        //连续10个交易日涨跌幅相同
+        if (amplitudeRange10[0] == amplitudeRange10Tem[amplitudeRange10Index]
+                && amplitudeRange10[1] == amplitudeRange10Tem[amplitudeRange10Index + 1 > 9 ? amplitudeRange10Index - 9 : amplitudeRange10Index + 1]
+                && amplitudeRange10[2] == amplitudeRange10Tem[amplitudeRange10Index + 2 > 9 ? amplitudeRange10Index - 8 : amplitudeRange10Index + 2]
+                && amplitudeRange10[3] == amplitudeRange10Tem[amplitudeRange10Index + 3 > 9 ? amplitudeRange10Index - 7 : amplitudeRange10Index + 3]
+                && amplitudeRange10[4] == amplitudeRange10Tem[amplitudeRange10Index + 4 > 9 ? amplitudeRange10Index - 6 : amplitudeRange10Index + 4]
+                && amplitudeRange10[5] == amplitudeRange10Tem[amplitudeRange10Index + 5 > 9 ? amplitudeRange10Index - 5 : amplitudeRange10Index + 5]
+                && amplitudeRange10[6] == amplitudeRange10Tem[amplitudeRange10Index + 6 > 9 ? amplitudeRange10Index - 4 : amplitudeRange10Index + 6]
+                && amplitudeRange10[7] == amplitudeRange10Tem[amplitudeRange10Index + 7 > 9 ? amplitudeRange10Index - 3 : amplitudeRange10Index + 7]
+                && amplitudeRange10[8] == amplitudeRange10Tem[amplitudeRange10Index + 8 > 9 ? amplitudeRange10Index - 2 : amplitudeRange10Index + 8]
+                && amplitudeRange10[9] == amplitudeRange10Tem[amplitudeRange10Index + 9 > 9 ? amplitudeRange10Index - 1 : amplitudeRange10Index + 9]) {
+            if (TextUtils.isEmpty(amplitudeRange10Txt.getText())) {
+                amplitudeRange10Txt.setText("连续10个交易日振幅相似：" + shareRealm.getDateYear() + shareRealm.getDate());
+            } else {
+                amplitudeRange10Txt.setText(amplitudeRange10Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+            }
+
+        }
+        //连续20个交易日涨跌幅中16个相同
+        int num = 0;
+        if (amplitudeRange20[0] == amplitudeRange20Tem[amplitudeRange20Index]) {
+            num++;
+        }
+        if (amplitudeRange20[1] == amplitudeRange20Tem[amplitudeRange20Index + 1 > 19 ? amplitudeRange20Index - 19 : amplitudeRange20Index + 1]) {
+            num++;
+        }
+        if (amplitudeRange20[2] == amplitudeRange20Tem[amplitudeRange20Index + 2 > 19 ? amplitudeRange20Index - 18 : amplitudeRange20Index + 2]) {
+            num++;
+        }
+        if (amplitudeRange20[3] == amplitudeRange20Tem[amplitudeRange20Index + 3 > 19 ? amplitudeRange20Index - 17 : amplitudeRange20Index + 3]) {
+            num++;
+        }
+        if (amplitudeRange20[4] == amplitudeRange20Tem[amplitudeRange20Index + 4 > 19 ? amplitudeRange20Index - 16 : amplitudeRange20Index + 4]) {
+            num++;
+        }
+        if (amplitudeRange20[5] == amplitudeRange20Tem[amplitudeRange20Index + 5 > 19 ? amplitudeRange20Index - 15 : amplitudeRange20Index + 5]) {
+            num++;
+        }
+        if (amplitudeRange20[6] == amplitudeRange20Tem[amplitudeRange20Index + 6 > 19 ? amplitudeRange20Index - 14 : amplitudeRange20Index + 6]) {
+            num++;
+        }
+        if (amplitudeRange20[7] == amplitudeRange20Tem[amplitudeRange20Index + 7 > 19 ? amplitudeRange20Index - 13 : amplitudeRange20Index + 7]) {
+            num++;
+        }
+        if (amplitudeRange20[8] == amplitudeRange20Tem[amplitudeRange20Index + 8 > 19 ? amplitudeRange20Index - 12 : amplitudeRange20Index + 8]) {
+            num++;
+        }
+        if (amplitudeRange20[9] == amplitudeRange20Tem[amplitudeRange20Index + 9 > 19 ? amplitudeRange20Index - 11 : amplitudeRange20Index + 9]) {
+            num++;
+        }
+        if (amplitudeRange20[10] == amplitudeRange20Tem[amplitudeRange20Index + 10 > 19 ? amplitudeRange20Index - 10 : amplitudeRange20Index + 10]) {
+            num++;
+        }
+        if (amplitudeRange20[11] == amplitudeRange20Tem[amplitudeRange20Index + 11 > 19 ? amplitudeRange20Index - 9 : amplitudeRange20Index + 11]) {
+            num++;
+        }
+        if (amplitudeRange20[12] == amplitudeRange20Tem[amplitudeRange20Index + 12 > 19 ? amplitudeRange20Index - 8 : amplitudeRange20Index + 12]) {
+            num++;
+        }
+        if (amplitudeRange20[13] == amplitudeRange20Tem[amplitudeRange20Index + 13 > 19 ? amplitudeRange20Index - 7 : amplitudeRange20Index + 13]) {
+            num++;
+        }
+        if (amplitudeRange20[14] == amplitudeRange20Tem[amplitudeRange20Index + 14 > 19 ? amplitudeRange20Index - 6 : amplitudeRange20Index + 14]) {
+            num++;
+        }
+        if (amplitudeRange20[15] == amplitudeRange20Tem[amplitudeRange20Index + 15 > 19 ? amplitudeRange20Index - 5 : amplitudeRange20Index + 15]) {
+            num++;
+        }
+        if (amplitudeRange20[16] == amplitudeRange20Tem[amplitudeRange20Index + 16 > 19 ? amplitudeRange20Index - 4 : amplitudeRange20Index + 16]) {
+            num++;
+        }
+        if (amplitudeRange20[17] == amplitudeRange20Tem[amplitudeRange20Index + 17 > 19 ? amplitudeRange20Index - 3 : amplitudeRange20Index + 17]) {
+            num++;
+        }
+        if (amplitudeRange20[18] == amplitudeRange20Tem[amplitudeRange20Index + 18 > 19 ? amplitudeRange20Index - 2 : amplitudeRange20Index + 18]) {
+            num++;
+        }
+        if (amplitudeRange20[19] == amplitudeRange20Tem[amplitudeRange20Index + 19 > 19 ? amplitudeRange20Index - 1 : amplitudeRange20Index + 19]) {
+            num++;
+        }
+        if (num >= 16) {
+            if (TextUtils.isEmpty(amplitudeRange20Txt.getText())) {
+                amplitudeRange20Txt.setText("连续20个交易日16个振幅相似：" + shareRealm.getDateYear() + shareRealm.getDate());
+            } else {
+                amplitudeRange20Txt.setText(amplitudeRange20Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+            }
+        }
+    }
     private void initRaiseRangeFall() {
         if (arrayData.size() >= 6) {
             raiseFallRange5[5] = raiseFallRange((arrayData.valueAt(0).getClosingPrice() - arrayData.valueAt(1).getClosingPrice()) / arrayData.valueAt(1).getClosingPrice());
@@ -435,7 +687,7 @@ public class ShareFragment extends Fragment {
                 && raiseFallRange5[3] == raiseFallRange5Tem[raiseFallRange5Index + 3 > 4 ? raiseFallRange5Index - 2 : raiseFallRange5Index + 3]
                 && raiseFallRange5[4] == raiseFallRange5Tem[raiseFallRange5Index + 4 > 4 ? raiseFallRange5Index - 1 : raiseFallRange5Index + 4]) {
             if (TextUtils.isEmpty(raiseFallRange5Txt.getText())) {
-                raiseFallRange5Txt.setText("连续5个交易日涨跌幅相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                raiseFallRange5Txt.setText("连续5个交易日涨跌幅相似：" + shareRealm1.getDateYear() + shareRealm1.getDate());
             } else {
                 raiseFallRange5Txt.setText(raiseFallRange5Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
             }
@@ -452,7 +704,7 @@ public class ShareFragment extends Fragment {
                 && raiseFallRange10[8] == raiseFallRange10Tem[raiseFallRange10Index + 8 > 9 ? raiseFallRange10Index - 2 : raiseFallRange10Index + 8]
                 && raiseFallRange10[9] == raiseFallRange10Tem[raiseFallRange10Index + 9 > 9 ? raiseFallRange10Index - 1 : raiseFallRange10Index + 9]) {
             if (TextUtils.isEmpty(raiseFallRange10Txt.getText())) {
-                raiseFallRange10Txt.setText("连续10个交易日涨跌幅相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                raiseFallRange10Txt.setText("连续10个交易日涨跌幅相似：" + shareRealm1.getDateYear() + shareRealm1.getDate());
             } else {
                 raiseFallRange10Txt.setText(raiseFallRange10Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
             }
@@ -522,7 +774,7 @@ public class ShareFragment extends Fragment {
         }
         if (num >= 16) {
             if (TextUtils.isEmpty(raiseFallRange20Txt.getText())) {
-                raiseFallRange20Txt.setText("连续20个交易日涨跌幅16个相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                raiseFallRange20Txt.setText("连续20个交易日16个涨跌幅相似：" + shareRealm1.getDateYear() + shareRealm1.getDate());
             } else {
                 raiseFallRange20Txt.setText(raiseFallRange20Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
             }

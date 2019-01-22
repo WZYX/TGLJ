@@ -19,6 +19,7 @@ public class ShareRealm extends RealmObject {
     private double minPrice;
     private long volume;//交易量
     private long turnover;//交易额
+    private double changeRate;//换手率
 
     public String getId() {
         return id;
@@ -122,5 +123,13 @@ public class ShareRealm extends RealmObject {
 
     public void setLunarYear(String lunarYear) {
         this.lunarYear = lunarYear;
+    }
+
+    public double getChangeRate() {
+        return changeRate;
+    }
+
+    public void setChangeRate(double changeRate) {
+        this.changeRate = changeRate;
     }
 }

@@ -59,19 +59,23 @@ public class MainActivity extends AppCompatActivity {
         RealmResults<ShareCodeName> realmResults = realm.where(ShareCodeName.class).findAllSorted("code", Sort.ASCENDING);
         data = new ArrayList<>();
         if (realmResults.size() == 0) {
+            data.add("000001");
             data.add("399006");
             data.add("399001");
-            data.add("000669");
-            data.add("002594");
+            data.add("300456");
+            data.add("600643");
+            data.add("300131");
+            title.add("上证指数");
             title.add("创业板指");
             title.add("深圳成指");
-            title.add("000669");
-            title.add("002594");
+            title.add("300456");
+            title.add("600643");
+            title.add("300131");
         } else {
             for (int i = 0; i < realmResults.size(); i++) {
                 ShareCodeName shareCodeName = realmResults.get(i);
-                //创业板指数和深圳成指排前面
-                if (shareCodeName.getCode().equals("399006") || shareCodeName.getCode().equals("399001")) {
+                //指数排前面
+                if (shareCodeName.getCode().equals("000001") ||shareCodeName.getCode().equals("399006") || shareCodeName.getCode().equals("399001")) {
                     data.add(0, realmResults.get(i).getCode());
                     title.add(0, realmResults.get(i).getName());
                 } else {
