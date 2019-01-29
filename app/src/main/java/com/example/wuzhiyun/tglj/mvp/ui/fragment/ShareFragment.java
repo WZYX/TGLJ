@@ -40,6 +40,10 @@ import io.realm.Sort;
 
 public class ShareFragment extends Fragment {
     View mView;
+    @BindView(R.id.average)
+    TextView averageTxt;
+    @BindView(R.id.median)
+    TextView medianTxt;
     @BindView(R.id.solar_today_day)
     TextView solarTodayDayTxt;
     @BindView(R.id.solar_today_num)
@@ -120,9 +124,86 @@ public class ShareFragment extends Fragment {
         return mView;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
 
     private void getData() {
         initData();
+        if (!isZhiShu()) {
+            //分价表。获取中位数、均价
+            new Thread() {
+                @Override
+                public void run() {
+                    super.run();
+                    try {
+                        Document doc = null;
+                        //网易个股
+                        String url = "http://stockhtm.finance.qq.com/sstock/quotpage/q/" + code + ".htm#price";
+                        doc = Jsoup.connect(url).get();
+                        if (doc == null) {
+                            return;
+                        }
+                        //成交量
+                        String volume = doc.getElementById("sp-0-9").text();
+                        long volumeLong = 0;
+                        int rate = 1;
+                        if (volume.contains("手")) {
+                            volume = volume.replace("手", "");
+                            if (volume.contains("万")) {
+                                volume = volume.replace("万", "");
+                                rate = 10000;
+                            } else if (volume.contains("亿")) {
+                                rate = 100000000;
+                                volume = volume.replace("亿", "");
+                            }
+                        }
+                        volumeLong = Long.valueOf(volume) * rate;
+                        //成交额
+                        String turnover = doc.getElementById("sp-0-9").text();
+                        double turnoverLong = 0;
+                        rate = 1;
+                        if (turnover.contains("手")) {
+                            turnover = turnover.replace("手", "");
+                            if (turnover.contains("万")) {
+                                turnover = turnover.replace("万", "");
+                                rate = 10000;
+                            } else if (turnover.contains("亿")) {
+                                rate = 100000000;
+                                turnover = turnover.replace("亿", "");
+                            }
+                        }
+                        turnoverLong = Long.valueOf(turnover) * rate;
+                        //均价
+                        double averagePrice = turnoverLong / volumeLong;
+                        averageTxt.setText("均价：" + averagePrice);
+                        //中位数
+                        double median = 0;
+                        Element table = doc.getElementById("pri_data");
+                        if (table == null) {
+                            return;
+                        }
+                        Elements trs = table.select("tbody").first().select("tr");
+                        long volumeIndex = 0;
+                        for (int i = 1; i < trs.size(); i++) {
+                            Elements tds = trs.get(i).select("td");
+                            volumeIndex += Long.valueOf(tds.get(1).text().replaceAll(",", ""));
+                            if (volumeIndex >= volumeLong / 2) {
+                                median = Double.valueOf(tds.get(0).getElementsByClass("span").text());
+                                break;
+                            }
+                        }
+                        medianTxt.setText("中位数：" + median);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
+        }
+
+        //k线数据
         new Thread() {
             @Override
             public void run() {
@@ -345,7 +426,7 @@ public class ShareFragment extends Fragment {
         initRaiseFall();
         initRaiseRangeFall();
         initAmplitude();
-        if (!isZhiShu()){
+        if (!isZhiShu()) {
             initChangeRate();
         }
 
@@ -356,7 +437,7 @@ public class ShareFragment extends Fragment {
             compareRaiseFall(shareRealmI, shareRealmI1);
             compareRaiseFallRange(shareRealmI, shareRealmI1);
             compareAmplitudeRange(shareRealmI);
-            if (!isZhiShu()){
+            if (!isZhiShu()) {
                 compareChangeRateRange(shareRealmI);
             }
 
@@ -369,7 +450,7 @@ public class ShareFragment extends Fragment {
     }
 
     //振幅等级
-    private int amplitudeRange(double range){
+    private int amplitudeRange(double range) {
         int result = 0;
         double leve1 = 3;
         double leve2 = 6;
@@ -417,8 +498,9 @@ public class ShareFragment extends Fragment {
         }
         return result;
     }
+
     //换手率等级
-    private int changeRateRange(double range){
+    private int changeRateRange(double range) {
         int result = 0;
         double leve1 = 4;
         double leve2 = 8;
@@ -837,6 +919,7 @@ public class ShareFragment extends Fragment {
             }
         }
     }
+
     private void initRaiseRangeFall() {
         if (arrayData.size() >= 6) {
             raiseFallRange5[5] = raiseFallRange((arrayData.valueAt(0).getClosingPrice() - arrayData.valueAt(1).getClosingPrice()) / arrayData.valueAt(1).getClosingPrice());
