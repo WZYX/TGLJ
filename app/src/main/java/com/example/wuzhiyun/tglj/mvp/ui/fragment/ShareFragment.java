@@ -162,7 +162,7 @@ public class ShareFragment extends Fragment {
                         }
                         volumeLong = Long.valueOf(volume) * rate;
                         //成交额
-                        String turnover = doc.getElementById("sp-0-9").text();
+                        String turnover = doc.getElementById("sp-0-10").text();
                         double turnoverLong = 0;
                         rate = 1;
                         if (turnover.contains("手")) {
