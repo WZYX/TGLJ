@@ -5,7 +5,6 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -13,14 +12,10 @@ import com.example.wuzhiyun.tglj.db.ShareCodeName;
 import com.example.wuzhiyun.tglj.mvp.ui.adpter.FragmentAdapter;
 import com.jess.arms.utils.ArmsUtils;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.simple.eventbus.EventBus;
-import org.simple.eventbus.Subscriber;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,23 +54,23 @@ public class MainActivity extends AppCompatActivity {
         RealmResults<ShareCodeName> realmResults = realm.where(ShareCodeName.class).findAllSorted("code", Sort.ASCENDING);
         data = new ArrayList<>();
         if (realmResults.size() == 0) {
-            data.add("000001");
-            data.add("399006");
-            data.add("399001");
+//            data.add("000001");
+//            data.add("399006");
+//            data.add("399001");
             data.add("300456");
-            data.add("600643");
-            data.add("300131");
-            title.add("上证指数");
-            title.add("创业板指");
-            title.add("深圳成指");
+//            data.add("600643");
+//            data.add("300131");
+//            title.add("上证指数");
+//            title.add("创业板指");
+//            title.add("深圳成指");
             title.add("300456");
-            title.add("600643");
-            title.add("300131");
+//            title.add("600643");
+//            title.add("300131");
         } else {
             for (int i = 0; i < realmResults.size(); i++) {
                 ShareCodeName shareCodeName = realmResults.get(i);
                 //指数排前面
-                if (shareCodeName.getCode().equals("000001") ||shareCodeName.getCode().equals("399006") || shareCodeName.getCode().equals("399001")) {
+                if (shareCodeName.getCode().equals("000001") || shareCodeName.getCode().equals("399006") || shareCodeName.getCode().equals("399001")) {
                     data.add(0, realmResults.get(i).getCode());
                     title.add(0, realmResults.get(i).getName());
                 } else {
@@ -92,8 +87,8 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setupWithViewPager(viewPager);
     }
 
-    @Subscriber
-    private void updateTitle(ShareCodeName shareCodeName) {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void updateTitle(ShareCodeName shareCodeName) {
         for (int i = 0; i < title.size(); i++) {
             if (shareCodeName.getCode().equals(title.get(i))) {
                 title.set(i, shareCodeName.getName());

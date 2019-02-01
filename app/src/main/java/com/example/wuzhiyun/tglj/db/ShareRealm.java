@@ -18,7 +18,7 @@ public class ShareRealm extends RealmObject {
     private double maxPrice;
     private double minPrice;
     private long volume;//交易量
-    private long turnover;//交易额
+    private double turnover;//交易额
     private double changeRate;//换手率
 
     public String getId() {
@@ -101,11 +101,11 @@ public class ShareRealm extends RealmObject {
         this.volume = volume;
     }
 
-    public long getTurnover() {
+    public double getTurnover() {
         return turnover;
     }
 
-    public void setTurnover(long turnover) {
+    public void setTurnover(double turnover) {
         this.turnover = turnover;
     }
 

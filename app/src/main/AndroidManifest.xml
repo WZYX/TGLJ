@@ -30,16 +30,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
-
-        </activity>
-        <activity android:name=".mvp.ui.activity.LotteryActivity" />
-        <activity android:name=".mvp.ui.activity.ShareActivity" />
-        <activity android:name=".mvp.ui.activity.ReverseActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name=".mvp.ui.activity.LotteryActivity" />
+        <activity android:name=".mvp.ui.activity.ShareActivity" />
+        <activity android:name=".mvp.ui.activity.ReverseActivity">
+
         </activity>
     </application>
 

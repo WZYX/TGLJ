@@ -18,11 +18,11 @@ import com.example.wuzhiyun.tglj.TGLJApplication;
 import com.example.wuzhiyun.tglj.db.ShareCodeName;
 import com.example.wuzhiyun.tglj.db.ShareRealm;
 
+import org.greenrobot.eventbus.EventBus;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.simple.eventbus.EventBus;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -148,6 +148,9 @@ public class ShareFragment extends Fragment {
                         }
                         //成交量
                         String volume = doc.getElementById("sp-0-9").text();
+                        if ("--".equals(volume)) {
+                            return;
+                        }
                         long volumeLong = 0;
                         int rate = 1;
                         if (volume.contains("手")) {
@@ -234,7 +237,7 @@ public class ShareFragment extends Fragment {
                     calendar.add(Calendar.DATE, -2);// 日期减2
                 }
                 String yestoday = sdf.format(calendar.getTime());//上一个交易日
-                Log.e("wuzhiyun" + code, "下一个交易日：" + yestoday);
+                Log.e("wuzhiyun" + code, "上一个交易日：" + yestoday);
                 calendar.add(Calendar.DATE, 2);
                 if (calendar.get(Calendar.DAY_OF_WEEK) == 7) {
                     calendar.add(Calendar.DATE, 2);
@@ -307,9 +310,26 @@ public class ShareFragment extends Fragment {
 //                                }
 //                            });
 //                        }
+
+                        ShareCodeName shareCodeName = realm.where(ShareCodeName.class).equalTo("code", code).findFirst();
+                        String text = doc.getElementsByClass("title_01").first().text();
+                        String shareName = text.substring(0, text.indexOf("("));
+                        if (shareCodeName == null || !shareName.equals(shareCodeName.getName())) {
+                            realm.executeTransaction(new Realm.Transaction() {
+                                @Override
+                                public void execute(Realm realm) {
+                                    ShareCodeName shareCodeName1 = new ShareCodeName();
+                                    shareCodeName1.setCode(code);
+                                    shareCodeName1.setName(shareName);
+                                    realm.copyToRealmOrUpdate(shareCodeName1);
+                                    EventBus.getDefault().post(shareCodeName1);
+
+                                }
+                            });
+                        }
                         Elements trs = table.select("tbody").first().select("tr");
 
-                        for (int i = 2; i < trs.size(); i++) {
+                        for (int i = 0; i < trs.size(); i++) {
                             Elements tds = trs.get(i).select("td");
                             String dateStr = tds.get(0).text().replace("-", "");
                             if (date.equals(dateStr)) {
@@ -322,13 +342,15 @@ public class ShareFragment extends Fragment {
                                 shareK.setCode(code);
                                 shareK.setDateYear(dateStr.substring(0, 4));
                                 shareK.setDate(dateStr.substring(4));
-                                shareK.setOpenPrice(Double.valueOf(tds.get(1).text()));
-                                shareK.setMaxPrice(Double.valueOf(tds.get(2).text()));
-                                shareK.setMinPrice(Double.valueOf(tds.get(3).text()));
-                                shareK.setClosingPrice(Double.valueOf(tds.get(4).text()));
-                                shareK.setVolume(Long.valueOf(tds.get(7).text()));
-                                shareK.setTurnover(Long.valueOf(tds.get(8).text()));
-                                shareK.setChangeRate(Double.valueOf(tds.get(10).text()));
+                                shareK.setOpenPrice(Double.valueOf(tds.get(1).text().replaceAll(",","")));
+                                shareK.setMaxPrice(Double.valueOf(tds.get(2).text().replaceAll(",","")));
+                                shareK.setMinPrice(Double.valueOf(tds.get(3).text().replaceAll(",","")));
+                                shareK.setClosingPrice(Double.valueOf(tds.get(4).text().replaceAll(",","")));
+                                shareK.setVolume(Long.valueOf(tds.get(7).text().replaceAll(",","").replace(".00","")));
+                                shareK.setTurnover(Double.valueOf(tds.get(8).text().replaceAll(",","")));
+                                if (!isZhiShu()) {
+                                    shareK.setChangeRate(Double.valueOf(tds.get(10).text().replaceAll(",","")));
+                                }
                                 String dateLunar = CalendarUtil.solarToLunar(dateStr);
                                 shareK.setLeap(dateLunar.contains("闰"));
                                 String lunarTemp = dateLunar.replace("闰", "");
