@@ -116,11 +116,11 @@ public class ShareFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         if (mView == null) {
             mView = inflater.inflate(R.layout.fragment_share, null);
+            unbinder = ButterKnife.bind(this, mView);
             code = getArguments().getString("CODE");
             arrayData = new SparseArray<>();
             getData();
         }
-        unbinder = ButterKnife.bind(this, mView);
         return mView;
     }
 
@@ -148,9 +148,8 @@ public class ShareFragment extends Fragment {
                         }
                         //成交量
                         String volume = doc.getElementById("sp-0-9").text();
-                        if ("--".equals(volume)) {
-                            return;
-                        }
+                        //成交额
+                        String turnover = doc.getElementById("sp-0-10").text();
                         long volumeLong = 0;
                         int rate = 1;
                         if (volume.contains("手")) {
@@ -164,8 +163,7 @@ public class ShareFragment extends Fragment {
                             }
                         }
                         volumeLong = Long.valueOf(volume) * rate;
-                        //成交额
-                        String turnover = doc.getElementById("sp-0-10").text();
+
                         double turnoverLong = 0;
                         rate = 1;
                         if (turnover.contains("手")) {
@@ -181,9 +179,14 @@ public class ShareFragment extends Fragment {
                         turnoverLong = Long.valueOf(turnover) * rate;
                         //均价
                         double averagePrice = turnoverLong / volumeLong;
-                        averageTxt.setText("均价：" + averagePrice);
+                        mView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                averageTxt.setText("均价：" + averagePrice);
+                            }
+                        });
+
                         //中位数
-                        double median = 0;
                         Element table = doc.getElementById("pri_data");
                         if (table == null) {
                             return;
@@ -194,11 +197,18 @@ public class ShareFragment extends Fragment {
                             Elements tds = trs.get(i).select("td");
                             volumeIndex += Long.valueOf(tds.get(1).text().replaceAll(",", ""));
                             if (volumeIndex >= volumeLong / 2) {
-                                median = Double.valueOf(tds.get(0).getElementsByClass("span").text());
+                                double median = Double.valueOf(tds.get(0).getElementsByClass("span").text());
+                                mView.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        medianTxt.setText("中位数：" + median);
+                                    }
+                                });
                                 break;
                             }
                         }
-                        medianTxt.setText("中位数：" + median);
+
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -249,6 +259,7 @@ public class ShareFragment extends Fragment {
                 //已取到昨天数据。今天还未收盘
                 if (!TextUtils.isEmpty(date) && date.equals(yestoday) && calendar.get(Calendar.HOUR_OF_DAY) < 15) {
                     analyze(today);
+                    analyzeK();
                     realm.close();
                     return;
                 }
@@ -313,7 +324,7 @@ public class ShareFragment extends Fragment {
 
                         ShareCodeName shareCodeName = realm.where(ShareCodeName.class).equalTo("code", code).findFirst();
                         String text = doc.getElementsByClass("title_01").first().text();
-                        String shareName = text.substring(0, text.indexOf("("));
+                        String shareName = text.substring(0, isZhiShu() ? text.indexOf(" ") : text.indexOf("("));
                         if (shareCodeName == null || !shareName.equals(shareCodeName.getName())) {
                             realm.executeTransaction(new Realm.Transaction() {
                                 @Override
@@ -327,7 +338,11 @@ public class ShareFragment extends Fragment {
                                 }
                             });
                         }
-                        Elements trs = table.select("tbody").first().select("tr");
+                        Element tbody = table.select("tbody").first();
+                        if (tbody == null) {
+                            break;
+                        }
+                        Elements trs = tbody.select("tr");
 
                         for (int i = 0; i < trs.size(); i++) {
                             Elements tds = trs.get(i).select("td");
@@ -342,14 +357,14 @@ public class ShareFragment extends Fragment {
                                 shareK.setCode(code);
                                 shareK.setDateYear(dateStr.substring(0, 4));
                                 shareK.setDate(dateStr.substring(4));
-                                shareK.setOpenPrice(Double.valueOf(tds.get(1).text().replaceAll(",","")));
-                                shareK.setMaxPrice(Double.valueOf(tds.get(2).text().replaceAll(",","")));
-                                shareK.setMinPrice(Double.valueOf(tds.get(3).text().replaceAll(",","")));
-                                shareK.setClosingPrice(Double.valueOf(tds.get(4).text().replaceAll(",","")));
-                                shareK.setVolume(Long.valueOf(tds.get(7).text().replaceAll(",","").replace(".00","")));
-                                shareK.setTurnover(Double.valueOf(tds.get(8).text().replaceAll(",","")));
+                                shareK.setOpenPrice(Double.valueOf(tds.get(1).text().replaceAll(",", "")));
+                                shareK.setMaxPrice(Double.valueOf(tds.get(2).text().replaceAll(",", "")));
+                                shareK.setMinPrice(Double.valueOf(tds.get(3).text().replaceAll(",", "")));
+                                shareK.setClosingPrice(Double.valueOf(tds.get(4).text().replaceAll(",", "")));
+                                shareK.setVolume(Long.valueOf(tds.get(7).text().replaceAll(",", "").replace(".00", "")));
+                                shareK.setTurnover(Double.valueOf(tds.get(8).text().replaceAll(",", "")));
                                 if (!isZhiShu()) {
-                                    shareK.setChangeRate(Double.valueOf(tds.get(10).text().replaceAll(",","")));
+                                    shareK.setChangeRate(Double.valueOf(tds.get(10).text().replaceAll(",", "")));
                                 }
                                 String dateLunar = CalendarUtil.solarToLunar(dateStr);
                                 shareK.setLeap(dateLunar.contains("闰"));
@@ -380,13 +395,14 @@ public class ShareFragment extends Fragment {
 
                     }
                 });
-                realm.close();
+
                 if (calendar.get(Calendar.HOUR_OF_DAY) < 15) {
                     analyze(today);
                 } else {
                     analyze(tomorrow);
                 }
                 analyzeK();
+                realm.close();
             }
         }.start();
     }
@@ -613,14 +629,14 @@ public class ShareFragment extends Fragment {
     }
 
     private void initAmplitude() {
-        if (arrayData.size() >= 6) {
-            changeRate5[5] = changeRateRange(arrayData.valueAt(0).getChangeRate());
-            changeRate5[4] = changeRateRange(arrayData.valueAt(1).getChangeRate());
-            changeRate5[3] = changeRateRange(arrayData.valueAt(2).getChangeRate());
-            changeRate5[2] = changeRateRange(arrayData.valueAt(3).getChangeRate());
-            changeRate5[1] = changeRateRange(arrayData.valueAt(4).getChangeRate());
+        if (arrayData.size() >= 5) {
+            changeRate5[4] = changeRateRange(arrayData.valueAt(0).getChangeRate());
+            changeRate5[3] = changeRateRange(arrayData.valueAt(1).getChangeRate());
+            changeRate5[2] = changeRateRange(arrayData.valueAt(2).getChangeRate());
+            changeRate5[1] = changeRateRange(arrayData.valueAt(3).getChangeRate());
+            changeRate5[0] = changeRateRange(arrayData.valueAt(4).getChangeRate());
         }
-        if (arrayData.size() >= 11) {
+        if (arrayData.size() >= 10) {
             changeRate10[9] = changeRateRange(arrayData.valueAt(0).getChangeRate());
             changeRate10[8] = changeRateRange(arrayData.valueAt(1).getChangeRate());
             changeRate10[7] = changeRateRange(arrayData.valueAt(2).getChangeRate());
@@ -632,7 +648,7 @@ public class ShareFragment extends Fragment {
             changeRate10[1] = changeRateRange(arrayData.valueAt(8).getChangeRate());
             changeRate10[0] = changeRateRange(arrayData.valueAt(9).getChangeRate());
         }
-        if (arrayData.size() >= 21) {
+        if (arrayData.size() >= 20) {
             changeRate20[19] = changeRateRange(arrayData.valueAt(0).getChangeRate());
             changeRate20[18] = changeRateRange(arrayData.valueAt(1).getChangeRate());
             changeRate20[17] = changeRateRange(arrayData.valueAt(2).getChangeRate());
@@ -682,10 +698,23 @@ public class ShareFragment extends Fragment {
                 && amplitudeRange5[2] == amplitudeRange5Tem[amplitudeRange5Index + 2 > 4 ? amplitudeRange5Index - 3 : amplitudeRange5Index + 2]
                 && amplitudeRange5[3] == amplitudeRange5Tem[amplitudeRange5Index + 3 > 4 ? amplitudeRange5Index - 2 : amplitudeRange5Index + 3]
                 && amplitudeRange5[4] == amplitudeRange5Tem[amplitudeRange5Index + 4 > 4 ? amplitudeRange5Index - 1 : amplitudeRange5Index + 4]) {
+            String text = shareRealm.getDateYear() + shareRealm.getDate();
             if (TextUtils.isEmpty(amplitudeRange5Txt.getText())) {
-                amplitudeRange5Txt.setText("连续5个交易日振幅相似：" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        amplitudeRange5Txt.setText("连续5个交易日振幅相似：" + text);
+                    }
+                });
+
             } else {
-                amplitudeRange5Txt.setText(amplitudeRange5Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        amplitudeRange5Txt.setText(amplitudeRange5Txt.getText() + "、" + text);
+                    }
+                });
+
             }
         }
         //连续10个交易日涨跌幅相同
@@ -699,10 +728,23 @@ public class ShareFragment extends Fragment {
                 && amplitudeRange10[7] == amplitudeRange10Tem[amplitudeRange10Index + 7 > 9 ? amplitudeRange10Index - 3 : amplitudeRange10Index + 7]
                 && amplitudeRange10[8] == amplitudeRange10Tem[amplitudeRange10Index + 8 > 9 ? amplitudeRange10Index - 2 : amplitudeRange10Index + 8]
                 && amplitudeRange10[9] == amplitudeRange10Tem[amplitudeRange10Index + 9 > 9 ? amplitudeRange10Index - 1 : amplitudeRange10Index + 9]) {
+            String text = shareRealm.getDateYear() + shareRealm.getDate();
             if (TextUtils.isEmpty(amplitudeRange10Txt.getText())) {
-                amplitudeRange10Txt.setText("连续10个交易日振幅相似：" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        amplitudeRange10Txt.setText("连续10个交易日振幅相似：" + text);
+                    }
+                });
+
             } else {
-                amplitudeRange10Txt.setText(amplitudeRange10Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        amplitudeRange10Txt.setText(amplitudeRange10Txt.getText() + "、" + text);
+                    }
+                });
+
             }
 
         }
@@ -769,23 +811,34 @@ public class ShareFragment extends Fragment {
             num++;
         }
         if (num >= 16) {
+            String text = shareRealm.getDateYear() + shareRealm.getDate();
             if (TextUtils.isEmpty(amplitudeRange20Txt.getText())) {
-                amplitudeRange20Txt.setText("连续20个交易日16个振幅相似：" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        amplitudeRange20Txt.setText("连续20个交易日16个振幅相似：" + text);
+                    }
+                });
             } else {
-                amplitudeRange20Txt.setText(amplitudeRange20Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        amplitudeRange20Txt.setText(amplitudeRange20Txt.getText() + "、" + text);
+                    }
+                });
             }
         }
     }
 
     private void initChangeRate() {
-        if (arrayData.size() >= 6) {
-            amplitudeRange5[5] = changeRateRange(arrayData.valueAt(0).getChangeRate());
-            amplitudeRange5[4] = changeRateRange(arrayData.valueAt(1).getChangeRate());
-            amplitudeRange5[3] = changeRateRange(arrayData.valueAt(2).getChangeRate());
-            amplitudeRange5[2] = changeRateRange(arrayData.valueAt(3).getChangeRate());
-            amplitudeRange5[1] = changeRateRange(arrayData.valueAt(4).getChangeRate());
+        if (arrayData.size() >= 5) {
+            amplitudeRange5[4] = changeRateRange(arrayData.valueAt(0).getChangeRate());
+            amplitudeRange5[3] = changeRateRange(arrayData.valueAt(1).getChangeRate());
+            amplitudeRange5[2] = changeRateRange(arrayData.valueAt(2).getChangeRate());
+            amplitudeRange5[1] = changeRateRange(arrayData.valueAt(3).getChangeRate());
+            amplitudeRange5[0] = changeRateRange(arrayData.valueAt(4).getChangeRate());
         }
-        if (arrayData.size() >= 11) {
+        if (arrayData.size() >= 10) {
             amplitudeRange10[9] = changeRateRange(arrayData.valueAt(0).getChangeRate());
             amplitudeRange10[8] = changeRateRange(arrayData.valueAt(1).getChangeRate());
             amplitudeRange10[7] = changeRateRange(arrayData.valueAt(2).getChangeRate());
@@ -797,7 +850,7 @@ public class ShareFragment extends Fragment {
             amplitudeRange10[1] = changeRateRange(arrayData.valueAt(8).getChangeRate());
             amplitudeRange10[0] = changeRateRange(arrayData.valueAt(9).getChangeRate());
         }
-        if (arrayData.size() >= 21) {
+        if (arrayData.size() >= 20) {
             amplitudeRange20[19] = changeRateRange(arrayData.valueAt(0).getChangeRate());
             amplitudeRange20[18] = changeRateRange(arrayData.valueAt(1).getChangeRate());
             amplitudeRange20[17] = changeRateRange(arrayData.valueAt(2).getChangeRate());
@@ -847,10 +900,23 @@ public class ShareFragment extends Fragment {
                 && changeRate5[2] == changeRate5Tem[changeRate5Index + 2 > 4 ? changeRate5Index - 3 : changeRate5Index + 2]
                 && changeRate5[3] == changeRate5Tem[changeRate5Index + 3 > 4 ? changeRate5Index - 2 : changeRate5Index + 3]
                 && changeRate5[4] == changeRate5Tem[changeRate5Index + 4 > 4 ? changeRate5Index - 1 : changeRate5Index + 4]) {
+            String text = shareRealm.getDateYear() + shareRealm.getDate();
             if (TextUtils.isEmpty(changeRate5Txt.getText())) {
-                changeRate5Txt.setText("连续5个交易日换手率相似：" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        changeRate5Txt.setText("连续5个交易日换手率相似：" + text);
+                    }
+                });
+
             } else {
-                changeRate5Txt.setText(changeRate5Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        changeRate5Txt.setText(changeRate5Txt.getText() + "、" + text);
+                    }
+                });
+
             }
         }
         //连续10个交易日换手率相似
@@ -864,10 +930,23 @@ public class ShareFragment extends Fragment {
                 && changeRate10[7] == changeRate10Tem[changeRate10Index + 7 > 9 ? changeRate10Index - 3 : changeRate10Index + 7]
                 && changeRate10[8] == changeRate10Tem[changeRate10Index + 8 > 9 ? changeRate10Index - 2 : changeRate10Index + 8]
                 && changeRate10[9] == changeRate10Tem[changeRate10Index + 9 > 9 ? changeRate10Index - 1 : changeRate10Index + 9]) {
+            String text = shareRealm.getDateYear() + shareRealm.getDate();
             if (TextUtils.isEmpty(changeRate10Txt.getText())) {
-                changeRate10Txt.setText("连续10个交易日换手率相似：" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        changeRate10Txt.setText("连续10个交易日换手率相似：" + text);
+                    }
+                });
+
             } else {
-                changeRate10Txt.setText(changeRate10Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        changeRate10Txt.setText(changeRate10Txt.getText() + "、" + text);
+                    }
+                });
+
             }
 
         }
@@ -934,21 +1013,34 @@ public class ShareFragment extends Fragment {
             num++;
         }
         if (num >= 16) {
+            String text = shareRealm.getDateYear() + shareRealm.getDate();
             if (TextUtils.isEmpty(changeRate20Txt.getText())) {
-                changeRate20Txt.setText("连续20个交易日16个换手率相似：" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        changeRate20Txt.setText("连续20个交易日16个换手率相似：" + text);
+                    }
+                });
+
             } else {
-                changeRate20Txt.setText(changeRate20Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        changeRate20Txt.setText(changeRate20Txt.getText() + "、" + text);
+                    }
+                });
+
             }
         }
     }
 
     private void initRaiseRangeFall() {
         if (arrayData.size() >= 6) {
-            raiseFallRange5[5] = raiseFallRange((arrayData.valueAt(0).getClosingPrice() - arrayData.valueAt(1).getClosingPrice()) / arrayData.valueAt(1).getClosingPrice());
-            raiseFallRange5[4] = raiseFallRange((arrayData.valueAt(1).getClosingPrice() - arrayData.valueAt(2).getClosingPrice()) / arrayData.valueAt(2).getClosingPrice());
-            raiseFallRange5[3] = raiseFallRange((arrayData.valueAt(2).getClosingPrice() - arrayData.valueAt(3).getClosingPrice()) / arrayData.valueAt(3).getClosingPrice());
-            raiseFallRange5[2] = raiseFallRange((arrayData.valueAt(3).getClosingPrice() - arrayData.valueAt(4).getClosingPrice()) / arrayData.valueAt(4).getClosingPrice());
-            raiseFallRange5[1] = raiseFallRange((arrayData.valueAt(4).getClosingPrice() - arrayData.valueAt(5).getClosingPrice()) / arrayData.valueAt(5).getClosingPrice());
+            raiseFallRange5[4] = raiseFallRange((arrayData.valueAt(0).getClosingPrice() - arrayData.valueAt(1).getClosingPrice()) / arrayData.valueAt(1).getClosingPrice());
+            raiseFallRange5[3] = raiseFallRange((arrayData.valueAt(1).getClosingPrice() - arrayData.valueAt(2).getClosingPrice()) / arrayData.valueAt(2).getClosingPrice());
+            raiseFallRange5[2] = raiseFallRange((arrayData.valueAt(2).getClosingPrice() - arrayData.valueAt(3).getClosingPrice()) / arrayData.valueAt(3).getClosingPrice());
+            raiseFallRange5[1] = raiseFallRange((arrayData.valueAt(3).getClosingPrice() - arrayData.valueAt(4).getClosingPrice()) / arrayData.valueAt(4).getClosingPrice());
+            raiseFallRange5[0] = raiseFallRange((arrayData.valueAt(4).getClosingPrice() - arrayData.valueAt(5).getClosingPrice()) / arrayData.valueAt(5).getClosingPrice());
         }
         if (arrayData.size() >= 11) {
             raiseFallRange10[9] = raiseFallRange((arrayData.valueAt(0).getClosingPrice() - arrayData.valueAt(1).getClosingPrice()) / arrayData.valueAt(1).getClosingPrice());
@@ -1012,10 +1104,23 @@ public class ShareFragment extends Fragment {
                 && raiseFallRange5[2] == raiseFallRange5Tem[raiseFallRange5Index + 2 > 4 ? raiseFallRange5Index - 3 : raiseFallRange5Index + 2]
                 && raiseFallRange5[3] == raiseFallRange5Tem[raiseFallRange5Index + 3 > 4 ? raiseFallRange5Index - 2 : raiseFallRange5Index + 3]
                 && raiseFallRange5[4] == raiseFallRange5Tem[raiseFallRange5Index + 4 > 4 ? raiseFallRange5Index - 1 : raiseFallRange5Index + 4]) {
+            String text = shareRealm1.getDateYear() + shareRealm1.getDate();
             if (TextUtils.isEmpty(raiseFallRange5Txt.getText())) {
-                raiseFallRange5Txt.setText("连续5个交易日涨跌幅相似：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFallRange5Txt.setText("连续5个交易日涨跌幅相似：" + text);
+                    }
+                });
+
             } else {
-                raiseFallRange5Txt.setText(raiseFallRange5Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFallRange5Txt.setText(raiseFallRange5Txt.getText() + "、" + text);
+                    }
+                });
+
             }
         }
         //连续10个交易日涨跌幅相同
@@ -1029,10 +1134,23 @@ public class ShareFragment extends Fragment {
                 && raiseFallRange10[7] == raiseFallRange10Tem[raiseFallRange10Index + 7 > 9 ? raiseFallRange10Index - 3 : raiseFallRange10Index + 7]
                 && raiseFallRange10[8] == raiseFallRange10Tem[raiseFallRange10Index + 8 > 9 ? raiseFallRange10Index - 2 : raiseFallRange10Index + 8]
                 && raiseFallRange10[9] == raiseFallRange10Tem[raiseFallRange10Index + 9 > 9 ? raiseFallRange10Index - 1 : raiseFallRange10Index + 9]) {
+            String text = shareRealm1.getDateYear() + shareRealm1.getDate();
             if (TextUtils.isEmpty(raiseFallRange10Txt.getText())) {
-                raiseFallRange10Txt.setText("连续10个交易日涨跌幅相似：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFallRange10Txt.setText("连续10个交易日涨跌幅相似：" + text);
+                    }
+                });
+
             } else {
-                raiseFallRange10Txt.setText(raiseFallRange10Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFallRange10Txt.setText(raiseFallRange10Txt.getText() + "、" + text);
+                    }
+                });
+
             }
 
         }
@@ -1099,21 +1217,34 @@ public class ShareFragment extends Fragment {
             num++;
         }
         if (num >= 16) {
+            String text = shareRealm1.getDateYear() + shareRealm1.getDate();
             if (TextUtils.isEmpty(raiseFallRange20Txt.getText())) {
-                raiseFallRange20Txt.setText("连续20个交易日16个涨跌幅相似：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFallRange20Txt.setText("连续20个交易日16个涨跌幅相似：" + text);
+                    }
+                });
+
             } else {
-                raiseFallRange20Txt.setText(raiseFallRange20Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFallRange20Txt.setText(raiseFallRange20Txt.getText() + "、" + text);
+                    }
+                });
+
             }
         }
     }
 
     private void initRaiseFall() {
         if (arrayData.size() >= 6) {
-            raiseFall5[5] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(1).getClosingPrice();
-            raiseFall5[4] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(2).getClosingPrice();
-            raiseFall5[3] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(3).getClosingPrice();
-            raiseFall5[2] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(4).getClosingPrice();
-            raiseFall5[1] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(5).getClosingPrice();
+            raiseFall5[4] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(1).getClosingPrice();
+            raiseFall5[3] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(2).getClosingPrice();
+            raiseFall5[2] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(3).getClosingPrice();
+            raiseFall5[1] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(4).getClosingPrice();
+            raiseFall5[0] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(5).getClosingPrice();
         }
         if (arrayData.size() >= 11) {
             raiseFall10[9] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(1).getClosingPrice();
@@ -1177,10 +1308,23 @@ public class ShareFragment extends Fragment {
                 && raiseFall5[2] == raiseFall5Tem[raiseFall5Index + 2 > 4 ? raiseFall5Index - 3 : raiseFall5Index + 2]
                 && raiseFall5[3] == raiseFall5Tem[raiseFall5Index + 3 > 4 ? raiseFall5Index - 2 : raiseFall5Index + 3]
                 && raiseFall5[4] == raiseFall5Tem[raiseFall5Index + 4 > 4 ? raiseFall5Index - 1 : raiseFall5Index + 4]) {
+            String text = shareRealm1.getDateYear() + shareRealm1.getDate();
             if (TextUtils.isEmpty(raiseFall5Txt.getText())) {
-                raiseFall5Txt.setText("连续5个交易日涨跌相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFall5Txt.setText("连续5个交易日涨跌相同：" + text);
+                    }
+                });
+
             } else {
-                raiseFall5Txt.setText(raiseFall5Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFall5Txt.setText(raiseFall5Txt.getText() + "、" + text);
+                    }
+                });
+
             }
         }
         //连续10个交易日涨跌相同
@@ -1194,10 +1338,23 @@ public class ShareFragment extends Fragment {
                 && raiseFall10[7] == raiseFall10Tem[raiseFall10Index + 7 > 9 ? raiseFall10Index - 3 : raiseFall10Index + 7]
                 && raiseFall10[8] == raiseFall10Tem[raiseFall10Index + 8 > 9 ? raiseFall10Index - 2 : raiseFall10Index + 8]
                 && raiseFall10[9] == raiseFall10Tem[raiseFall10Index + 9 > 9 ? raiseFall10Index - 1 : raiseFall10Index + 9]) {
+            String text = shareRealm1.getDateYear() + shareRealm1.getDate();
             if (TextUtils.isEmpty(raiseFall10Txt.getText())) {
-                raiseFall10Txt.setText("连续10个交易日涨跌相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFall10Txt.setText("连续10个交易日涨跌相同：" + text);
+                    }
+                });
+
             } else {
-                raiseFall10Txt.setText(raiseFall10Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFall10Txt.setText(raiseFall10Txt.getText() + "、" + text);
+                    }
+                });
+
             }
 
         }
@@ -1264,10 +1421,23 @@ public class ShareFragment extends Fragment {
             num++;
         }
         if (num >= 16) {
+            String text = shareRealm1.getDateYear() + shareRealm1.getDate();
             if (TextUtils.isEmpty(raiseFall20Txt.getText())) {
-                raiseFall20Txt.setText("连续20个交易日涨跌16个相同：" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFall20Txt.setText("连续20个交易日涨跌16个相同：" + text);
+                    }
+                });
+
             } else {
-                raiseFall20Txt.setText(raiseFall20Txt.getText() + "、" + shareRealm1.getDateYear() + shareRealm1.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        raiseFall20Txt.setText(raiseFall20Txt.getText() + "、" + text);
+                    }
+                });
+
             }
         }
     }
@@ -1298,10 +1468,23 @@ public class ShareFragment extends Fragment {
                 && yinYang5[2] == yinYang5Tem[yinYang5Index + 2 > 4 ? yinYang5Index - 3 : yinYang5Index + 2]
                 && yinYang5[3] == yinYang5Tem[yinYang5Index + 3 > 4 ? yinYang5Index - 2 : yinYang5Index + 3]
                 && yinYang5[4] == yinYang5Tem[yinYang5Index + 4 > 4 ? yinYang5Index - 1 : yinYang5Index + 4]) {
+            String text = shareRealm.getDateYear() + shareRealm.getDate();
             if (TextUtils.isEmpty(yinYang5Txt.getText())) {
-                yinYang5Txt.setText("连续5个交易日阴阳线相同：" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        yinYang5Txt.setText("连续5个交易日阴阳线相同：" + text);
+                    }
+                });
+
             } else {
-                yinYang5Txt.setText(yinYang5Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        yinYang5Txt.setText(yinYang5Txt.getText() + "、" + text);
+                    }
+                });
+
             }
         }
         //连续10个交易日阴阳线相同
@@ -1315,10 +1498,23 @@ public class ShareFragment extends Fragment {
                 && yinYang10[7] == yinYang10Tem[yinYang10Index + 7 > 9 ? yinYang10Index - 3 : yinYang10Index + 7]
                 && yinYang10[8] == yinYang10Tem[yinYang10Index + 8 > 9 ? yinYang10Index - 2 : yinYang10Index + 8]
                 && yinYang10[9] == yinYang10Tem[yinYang10Index + 9 > 9 ? yinYang10Index - 1 : yinYang10Index + 9]) {
+            String text = shareRealm.getDateYear() + shareRealm.getDate();
             if (TextUtils.isEmpty(yinYang10Txt.getText())) {
-                yinYang10Txt.setText("连续10个交易日阴阳线相同：" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        yinYang10Txt.setText("连续10个交易日阴阳线相同：" + text);
+                    }
+                });
+
             } else {
-                yinYang10Txt.setText(yinYang10Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        yinYang10Txt.setText(yinYang10Txt.getText() + "、" + text);
+                    }
+                });
+
             }
 
         }
@@ -1385,21 +1581,34 @@ public class ShareFragment extends Fragment {
             num++;
         }
         if (num >= 16) {
+            String text = shareRealm.getDateYear() + shareRealm.getDate();
             if (TextUtils.isEmpty(yinYang20Txt.getText())) {
-                yinYang20Txt.setText("连续20个交易日阴阳线16个相同：" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        yinYang20Txt.setText("连续20个交易日阴阳线16个相同：" + text);
+                    }
+                });
+
             } else {
-                yinYang20Txt.setText(yinYang20Txt.getText() + "、" + shareRealm.getDateYear() + shareRealm.getDate());
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        yinYang20Txt.setText(yinYang20Txt.getText() + "、" + text);
+                    }
+                });
+
             }
         }
     }
 
     private void initYinYang() {
         if (arrayData.size() >= 5) {
-            yinYang5[5] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
-            yinYang5[4] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
-            yinYang5[3] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
-            yinYang5[2] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
-            yinYang5[1] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
+            yinYang5[4] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
+            yinYang5[3] = arrayData.valueAt(1).getClosingPrice() > arrayData.valueAt(1).getOpenPrice();
+            yinYang5[2] = arrayData.valueAt(2).getClosingPrice() > arrayData.valueAt(2).getOpenPrice();
+            yinYang5[1] = arrayData.valueAt(3).getClosingPrice() > arrayData.valueAt(3).getOpenPrice();
+            yinYang5[0] = arrayData.valueAt(4).getClosingPrice() > arrayData.valueAt(4).getOpenPrice();
         }
         if (arrayData.size() >= 10) {
             yinYang10[9] = arrayData.valueAt(0).getClosingPrice() > arrayData.valueAt(0).getOpenPrice();
@@ -1440,7 +1649,13 @@ public class ShareFragment extends Fragment {
     //统计次数
     private void analyze(String day) {
         Log.e("wuzhiyun" + code, "统计日期：" + day);
-        solarTodayDayTxt.setText("统计日期(阳历)：" + day);
+        mView.post(new Runnable() {
+            @Override
+            public void run() {
+                solarTodayDayTxt.setText("统计日期(阳历)：" + day);
+            }
+        });
+
         int todayKey = Integer.valueOf(day);//yyyyMMdd
         Calendar calendar = Calendar.getInstance();
         try {
@@ -1488,7 +1703,13 @@ public class ShareFragment extends Fragment {
             }
 
             String lunarTodayStr = CalendarUtil.solarToLunar(day);
-            lunarTodayDayTxt.setText("统计日期(阴历)：" + lunarTodayStr);
+            mView.post(new Runnable() {
+                @Override
+                public void run() {
+                    lunarTodayDayTxt.setText("统计日期(阴历)：" + lunarTodayStr);
+                }
+            });
+
             Log.e("wuzhiyun" + code, "阴历：" + lunarTodayStr);
             int lunarTodayYear = Integer.valueOf(lunarTodayStr.substring(0, 4));
             String lunarTodayDate = lunarTodayStr.substring(4);
@@ -1593,7 +1814,7 @@ public class ShareFragment extends Fragment {
     }
 
     private void showData() {
-        solarTodayNumTxt.post(new Runnable() {
+        mView.post(new Runnable() {
             @Override
             public void run() {
                 solarTodayNumTxt.setText(getString(R.string.solarTodayNum, solarNum));

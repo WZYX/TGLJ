@@ -54,18 +54,16 @@ public class MainActivity extends AppCompatActivity {
         RealmResults<ShareCodeName> realmResults = realm.where(ShareCodeName.class).findAllSorted("code", Sort.ASCENDING);
         data = new ArrayList<>();
         if (realmResults.size() == 0) {
-//            data.add("000001");
-//            data.add("399006");
-//            data.add("399001");
+            data.add("000001");
+            data.add("399006");
+            data.add("399001");
             data.add("300456");
-//            data.add("600643");
-//            data.add("300131");
-//            title.add("上证指数");
-//            title.add("创业板指");
-//            title.add("深圳成指");
+            data.add("600643");
+            title.add("上证指数");
+            title.add("创业板指");
+            title.add("深圳成指");
             title.add("300456");
-//            title.add("600643");
-//            title.add("300131");
+            title.add("600643");
         } else {
             for (int i = 0; i < realmResults.size(); i++) {
                 ShareCodeName shareCodeName = realmResults.get(i);
