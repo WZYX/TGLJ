@@ -29,7 +29,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -140,64 +139,37 @@ public class ShareFragment extends Fragment {
                     super.run();
                     try {
                         Document doc = null;
-                        //网易个股
-                        String url = "http://stockhtm.finance.qq.com/sstock/quotpage/q/" + code + ".htm#price";
+                        String url = "http://quotes.money.163.com/trade/fjb_" + code + ".html";
                         doc = Jsoup.connect(url).get();
-                        if (doc == null) {
+                        //中位数
+                        Element table = doc.getElementsByClass("table_bg001 border_box table_sortable2").first();
+                        if (table == null) {
                             return;
                         }
-                        //成交量
-                        String volume = doc.getElementById("sp-0-9").text();
-                        //成交额
-                        String turnover = doc.getElementById("sp-0-10").text();
-                        long volumeLong = 0;
-                        int rate = 1;
-                        if (volume.contains("手")) {
-                            volume = volume.replace("手", "");
-                            if (volume.contains("万")) {
-                                volume = volume.replace("万", "");
-                                rate = 10000;
-                            } else if (volume.contains("亿")) {
-                                rate = 100000000;
-                                volume = volume.replace("亿", "");
-                            }
+                        Elements trs = table.select("tbody").first().select("tr");
+                        double turnover = 0;
+                        long volume = 0;
+                        long volumeIndex = 0;
+                        for (int i = 0; i < trs.size(); i++) {
+                            Elements tds = trs.get(i).select("td");
+                            long volumeTem = Long.valueOf(tds.get(1).text().replaceAll(",", ""));
+                            volume += volumeTem;
+                            turnover += volumeTem * Double.valueOf(tds.get(0).text());
                         }
-                        volumeLong = Long.valueOf(volume) * rate;
-
-                        double turnoverLong = 0;
-                        rate = 1;
-                        if (turnover.contains("手")) {
-                            turnover = turnover.replace("手", "");
-                            if (turnover.contains("万")) {
-                                turnover = turnover.replace("万", "");
-                                rate = 10000;
-                            } else if (turnover.contains("亿")) {
-                                rate = 100000000;
-                                turnover = turnover.replace("亿", "");
-                            }
-                        }
-                        turnoverLong = Long.valueOf(turnover) * rate;
                         //均价
-                        double averagePrice = turnoverLong / volumeLong;
+                        double averagePrice = turnover / volume;
                         mView.post(new Runnable() {
                             @Override
                             public void run() {
                                 averageTxt.setText("均价：" + averagePrice);
                             }
                         });
-
                         //中位数
-                        Element table = doc.getElementById("pri_data");
-                        if (table == null) {
-                            return;
-                        }
-                        Elements trs = table.select("tbody").first().select("tr");
-                        long volumeIndex = 0;
-                        for (int i = 1; i < trs.size(); i++) {
+                        for (int i = 0; i < trs.size(); i++) {
                             Elements tds = trs.get(i).select("td");
                             volumeIndex += Long.valueOf(tds.get(1).text().replaceAll(",", ""));
-                            if (volumeIndex >= volumeLong / 2) {
-                                double median = Double.valueOf(tds.get(0).getElementsByClass("span").text());
+                            if (volumeIndex >= volume / 2) {
+                                double median = Double.valueOf(tds.get(0).text());
                                 mView.post(new Runnable() {
                                     @Override
                                     public void run() {
@@ -1840,6 +1812,5 @@ public class ShareFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unbinder.unbind();
     }
 }
