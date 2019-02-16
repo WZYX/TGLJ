@@ -198,6 +198,7 @@ public class ShareFragment extends Fragment {
                 int year = calendar.get(Calendar.YEAR);
                 int month = calendar.get(Calendar.MONTH) + 1;
                 String today = sdf.format(calendar.getTime());
+                int todayIndex = calendar.get(Calendar.DAY_OF_WEEK);
                 Log.e("wuzhiyun" + code, "今日：" + today);
                 int jidu = month / 3 + (month % 3 == 0 ? 0 : 1);
                 Realm realm = TGLJApplication.getInstance().getRealm();
@@ -228,9 +229,17 @@ public class ShareFragment extends Fragment {
                 }
                 String tomorrow = sdf.format(calendar.getTime());//下一个交易日
                 Log.e("wuzhiyun" + code, "下一个交易日：" + tomorrow);
-                //已取到昨天数据。今天还未收盘
-                if (!TextUtils.isEmpty(date) && date.equals(yestoday) && calendar.get(Calendar.HOUR_OF_DAY) < 15) {
-                    analyze(today);
+                //已取到昨天数据。
+                if (!TextUtils.isEmpty(date) && date.equals(yestoday)) {
+                    if (calendar.get(Calendar.HOUR_OF_DAY) < 15) {
+                        if (todayIndex == 1 || todayIndex == 7) {
+                            analyze(tomorrow);
+                        } else {
+                            analyze(today);
+                        }
+                    } else {
+                        analyze(tomorrow);
+                    }
                     analyzeK();
                     realm.close();
                     return;
